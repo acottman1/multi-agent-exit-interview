@@ -23,14 +23,12 @@ from typing import Awaitable, Callable, Union
 from pydantic import BaseModel
 
 from app.agents.orchestrator import select_next_question
-from app.agents.stubs import (
-    detect_clarifications,
-    extract_attributes,
-    extract_entities,
-    extract_relationships,
-    map_to_graph_updates,
-    update_coverage,
-)
+from app.agents.attribute_extractor import extract_attributes
+from app.agents.clarification_detector import detect_clarifications
+from app.agents.coverage_updater import update_coverage
+from app.agents.entity_extractor import extract_entities
+from app.agents.graph_mapper import map_to_graph_updates
+from app.agents.relationship_extractor import extract_relationships
 from app.core.models import (
     ClarificationOutput,
     InterviewTurn,
