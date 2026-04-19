@@ -1,0 +1,196 @@
+"""
+Interview turn loop.
+
+A single turn runs as follows:
+  1. Orchestrator selects the next question (rule-based in Phase 4).
+  2. Answer provider supplies the interviewee's answer.
+  3. Five specialist analyzers run CONCURRENTLY via asyncio.gather
+     (Constraint §26-1: Entity / Relationship / Attribute / Clarification /
+     Coverage must not block each other).
+  4. Graph mapper synthesizes the extractor outputs into graph ops.
+  5. Updater commits the ProposedUpdate (Phase 3 module).
+  6. Coverage and open questions are book-kept back onto state.
+
+run_interview() loops run_turn() until max_turns or should_stop().
+"""
+from __future__ import annotations
+
+import asyncio
+import inspect
+import logging
+from typing import Awaitable, Callable, Union
+
+from pydantic import BaseModel
+
+from app.agents.orchestrator import select_next_question
+from app.agents.stubs import (
+    detect_clarifications,
+    extract_attributes,
+    extract_entities,
+    extract_relationships,
+    map_to_graph_updates,
+    update_coverage,
+)
+from app.core.models import (
+    ClarificationOutput,
+    InterviewTurn,
+    OpenQuestion,
+    OrchestratorOutput,
+    ProposedUpdate,
+    SharedInterviewState,
+)
+from app.graph.updater import ApplyResult, apply_proposed_update
+
+logger = logging.getLogger(__name__)
+
+DEFAULT_MAX_TURNS: int = 12
+
+# Answer providers may be sync or async. In tests we use scripted sync callables;
+# in production this will be bound to a FastAPI/WebSocket handler.
+AnswerProvider = Union[
+    Callable[[str], Awaitable[str]],
+    Callable[[str], str],
+]
+
+
+class TurnResult(BaseModel):
+    """Outcome of a single turn, returned to the caller for inspection."""
+    model_config = {"arbitrary_types_allowed": True}
+
+    orchestrator_output: OrchestratorOutput
+    turn: InterviewTurn
+    proposed_update: ProposedUpdate
+    apply_result: ApplyResult
+
+
+# ── Single-turn pipeline ──────────────────────────────────────────────────────
+
+async def run_turn(
+    state: SharedInterviewState,
+    answer_provider: AnswerProvider,
+) -> TurnResult:
+    """Run one full interview turn end-to-end."""
+    # 1. Orchestrator picks next question (pure function; we record the ask below)
+    orchestrator_output = select_next_question(state)
+    state.asked_question_ids.append(orchestrator_output.question_id)
+
+    # 2. Elicit the answer — support sync or async providers
+    raw_answer = answer_provider(orchestrator_output.next_question)
+    answer: str = await raw_answer if inspect.isawaitable(raw_answer) else raw_answer  # type: ignore[assignment]
+
+    # 3. Record the turn before analysis so extractors always have a turn_id
+    turn = InterviewTurn(
+        turn_number=len(state.turns) + 1,
+        question=orchestrator_output.next_question,
+        question_rationale=orchestrator_output.rationale,
+        answer=answer,
+    )
+    state.turns.append(turn)
+
+    # 4. Parallel fan-out of the five analyzers (Constraint §26-1)
+    known_node_ids = [n.id for n in state.graph.nodes if n.status != "superseded"]
+    existing_aliases = {
+        n.id: [n.label, *n.aliases]
+        for n in state.graph.nodes
+        if n.status != "superseded"
+    }
+    ambiguous_aliases = _ambiguous_alias_map(state)
+
+    entity_out, relationship_out, attribute_out, clarification_out, coverage_out = (
+        await asyncio.gather(
+            extract_entities(turn, existing_aliases),
+            extract_relationships(turn, known_node_ids),
+            extract_attributes(turn, known_node_ids),
+            detect_clarifications(turn, ambiguous_aliases),
+            update_coverage(turn, state.coverage),
+        )
+    )
+
+    # 5. Graph mapper runs AFTER the extractors because it consumes their outputs
+    mapping_out = await map_to_graph_updates(
+        entity_out, relationship_out, attribute_out
+    )
+
+    # 6. Bundle into a ProposedUpdate and commit via the Phase 3 updater
+    update = ProposedUpdate(
+        source_turn_id=turn.turn_id,
+        entity_extraction=entity_out,
+        relationship_extraction=relationship_out,
+        attribute_extraction=attribute_out,
+        clarifications=clarification_out,
+        graph_mapping=mapping_out,
+    )
+    state.proposed_updates.append(update)
+    apply_result = apply_proposed_update(state, update)
+
+    # 7. Book-keep coverage + convert clarifications into open questions
+    state.coverage = coverage_out.updated_scores
+    _append_clarifications_as_open_questions(state, clarification_out)
+
+    if apply_result.has_rejections:
+        logger.info(
+            "Turn %d committed with rejections; see ApplyResult for reasons.",
+            turn.turn_number,
+        )
+
+    return TurnResult(
+        orchestrator_output=orchestrator_output,
+        turn=turn,
+        proposed_update=update,
+        apply_result=apply_result,
+    )
+
+
+# ── Multi-turn loop ───────────────────────────────────────────────────────────
+
+async def run_interview(
+    state: SharedInterviewState,
+    answer_provider: AnswerProvider,
+    max_turns: int = DEFAULT_MAX_TURNS,
+    should_stop: Callable[[SharedInterviewState], bool] | None = None,
+) -> list[TurnResult]:
+    """
+    Run run_turn repeatedly until either max_turns is reached or
+    should_stop(state) returns True. Returns one TurnResult per completed turn.
+    """
+    results: list[TurnResult] = []
+    for _ in range(max_turns):
+        if should_stop is not None and should_stop(state):
+            break
+        results.append(await run_turn(state, answer_provider))
+    return results
+
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
+def _ambiguous_alias_map(state: SharedInterviewState) -> dict[str, list[str]]:
+    """
+    Surface forms shared by more than one non-superseded node.
+    Passed to the clarification agent so it can cheaply spot ambiguous refs.
+    """
+    alias_to_nodes: dict[str, list[str]] = {}
+    for node in state.graph.nodes:
+        if node.status == "superseded":
+            continue
+        for surface in [node.label, *node.aliases]:
+            alias_to_nodes.setdefault(surface, []).append(node.id)
+    return {alias: ids for alias, ids in alias_to_nodes.items() if len(ids) > 1}
+
+
+def _append_clarifications_as_open_questions(
+    state: SharedInterviewState,
+    clarification_out: ClarificationOutput,
+) -> None:
+    """
+    Clarifications emitted during the turn become OpenQuestions that the
+    orchestrator can draw from in later turns.
+    """
+    for c in clarification_out.clarifications:
+        state.open_questions.append(
+            OpenQuestion(
+                text=c.suggested_question,
+                rationale=c.reason,
+                target_category="clarification",
+                priority=c.priority,
+            )
+        )
