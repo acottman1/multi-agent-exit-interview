@@ -28,6 +28,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.ingestion.loaders import load_initial_state
 from app.interview.turn_loop import TurnResult, run_interview
+from app.vault.vault_compiler import compile_vault, save_final_state
 
 
 # ── Report data structures ────────────────────────────────────────────────────
@@ -142,6 +143,12 @@ async def run_scenario(scenario_name: str, fixture_module) -> EvalReport:
         (a for a in state.ambiguities if a.ambiguity_id == "amb_seed_001"), None
     )
     report.richard_ambiguity_resolved = richard_amb.resolved if richard_amb else False
+
+    # Persist state and compile vault
+    slug = scenario_name.split()[0].lower()          # e.g. "helpful", "vague"
+    runs_dir = Path("runs") / slug
+    save_final_state(state, runs_dir / "final_state.json")
+    compile_vault(state, runs_dir / "exit_interview_vault")
 
     # Run assertions from fixture
     _check_assertions(report, state, fixture_module)
