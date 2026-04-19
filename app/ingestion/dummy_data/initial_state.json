@@ -1,0 +1,359 @@
+{
+  "_comment": "Simulated output of a pre-built ingestion pipeline. Do NOT parse this with a document parser — load it directly via loaders.py.",
+  "_provenance_key": {
+    "roster_v2": "Project roster spreadsheet, exported 2025-11-01",
+    "org_chart_q4": "Org chart PDF, Q4 2025",
+    "ticket_falcon_22": "Jira ticket FALCON-22: Dashboard refresh latency",
+    "ticket_falcon_42": "Jira ticket FALCON-42: Change request approval stalled",
+    "ticket_falcon_58": "Jira ticket FALCON-58: Snowflake schema migration",
+    "handoff_notes_draft": "Alex Miller's partial handoff doc, 2026-03-10",
+    "meeting_2026_03_15": "Sprint standup notes, 2026-03-15",
+    "email_client_sync_jan": "Email thread: Client sync re: data definitions, Jan 2026"
+  },
+
+  "graph": {
+    "nodes": [
+      {
+        "id": "project_falcon",
+        "type": "Project",
+        "label": "Project Falcon",
+        "aliases": ["Falcon", "FALCON"],
+        "attributes": {
+          "status_note": "Active contract, renewal under review",
+          "start_date": "2024-06-01"
+        },
+        "status": "confirmed",
+        "confidence": 1.0,
+        "provenance": ["roster_v2", "org_chart_q4"],
+        "created_at": "2025-11-01T09:00:00+00:00",
+        "updated_at": "2025-11-01T09:00:00+00:00"
+      },
+      {
+        "id": "person_alex_miller",
+        "type": "Person",
+        "label": "Alex Miller",
+        "aliases": ["Alex"],
+        "attributes": {
+          "employment_type": "contractor",
+          "departure_date": "2026-05-01"
+        },
+        "status": "confirmed",
+        "confidence": 1.0,
+        "provenance": ["roster_v2"],
+        "created_at": "2025-11-01T09:00:00+00:00",
+        "updated_at": "2025-11-01T09:00:00+00:00"
+      },
+      {
+        "id": "person_jordan_lee",
+        "type": "Person",
+        "label": "Jordan Lee",
+        "aliases": ["Jordan"],
+        "attributes": {
+          "employment_type": "full-time",
+          "title": "Engagement Manager"
+        },
+        "status": "confirmed",
+        "confidence": 1.0,
+        "provenance": ["roster_v2", "org_chart_q4"],
+        "created_at": "2025-11-01T09:00:00+00:00",
+        "updated_at": "2025-11-01T09:00:00+00:00"
+      },
+      {
+        "id": "person_richard_jones",
+        "type": "Person",
+        "label": "Richard Jones",
+        "aliases": ["Richard", "Rich Jones"],
+        "attributes": {
+          "side": "client",
+          "title": "Product Owner"
+        },
+        "status": "provisional",
+        "confidence": 0.72,
+        "provenance": ["email_client_sync_jan", "ticket_falcon_22"],
+        "created_at": "2026-01-15T11:30:00+00:00",
+        "updated_at": "2026-01-15T11:30:00+00:00"
+      },
+      {
+        "id": "person_richard_smith",
+        "type": "Person",
+        "label": "Richard Smith",
+        "aliases": ["Richard", "Rich Smith"],
+        "attributes": {
+          "side": "internal",
+          "title": "Program Manager"
+        },
+        "status": "provisional",
+        "confidence": 0.58,
+        "provenance": ["ticket_falcon_42"],
+        "created_at": "2026-02-03T14:00:00+00:00",
+        "updated_at": "2026-02-03T14:00:00+00:00"
+      },
+      {
+        "id": "team_data_analytics",
+        "type": "Team",
+        "label": "Data Analytics Team",
+        "aliases": ["DA Team", "Analytics"],
+        "attributes": {},
+        "status": "confirmed",
+        "confidence": 0.95,
+        "provenance": ["org_chart_q4"],
+        "created_at": "2025-11-01T09:00:00+00:00",
+        "updated_at": "2025-11-01T09:00:00+00:00"
+      },
+      {
+        "id": "client_northstar_corp",
+        "type": "Client",
+        "label": "NorthStar Corp",
+        "aliases": ["NorthStar", "the client"],
+        "attributes": {
+          "industry": "financial services"
+        },
+        "status": "confirmed",
+        "confidence": 1.0,
+        "provenance": ["roster_v2"],
+        "created_at": "2025-11-01T09:00:00+00:00",
+        "updated_at": "2025-11-01T09:00:00+00:00"
+      },
+      {
+        "id": "system_tableau",
+        "type": "System",
+        "label": "Tableau",
+        "aliases": ["Tableau dashboards"],
+        "attributes": {
+          "purpose": "executive dashboards and client-facing reporting",
+          "owner": "unknown"
+        },
+        "status": "provisional",
+        "confidence": 0.85,
+        "provenance": ["handoff_notes_draft", "ticket_falcon_22"],
+        "created_at": "2026-03-10T10:00:00+00:00",
+        "updated_at": "2026-03-10T10:00:00+00:00"
+      },
+      {
+        "id": "system_snowflake",
+        "type": "System",
+        "label": "Snowflake",
+        "aliases": ["the warehouse", "DWH"],
+        "attributes": {
+          "purpose": "central data warehouse for Project Falcon",
+          "owner": "unknown",
+          "note": "schema migration in-flight per FALCON-58"
+        },
+        "status": "provisional",
+        "confidence": 0.9,
+        "provenance": ["ticket_falcon_58", "handoff_notes_draft"],
+        "created_at": "2026-03-10T10:00:00+00:00",
+        "updated_at": "2026-03-10T10:00:00+00:00"
+      },
+      {
+        "id": "system_jira",
+        "type": "System",
+        "label": "Jira",
+        "aliases": ["the tracker"],
+        "attributes": {
+          "purpose": "project and ticket tracking"
+        },
+        "status": "confirmed",
+        "confidence": 1.0,
+        "provenance": ["roster_v2"],
+        "created_at": "2025-11-01T09:00:00+00:00",
+        "updated_at": "2025-11-01T09:00:00+00:00"
+      },
+      {
+        "id": "doc_data_definitions",
+        "type": "Document",
+        "label": "Data Definitions Handbook",
+        "aliases": ["data defs", "the handbook"],
+        "attributes": {
+          "location": "Confluence/Project-Falcon/Data",
+          "last_updated": "2025-09-12",
+          "completeness": "partial — sections 4 and 5 are stubs"
+        },
+        "status": "provisional",
+        "confidence": 0.78,
+        "provenance": ["email_client_sync_jan"],
+        "created_at": "2026-01-15T11:30:00+00:00",
+        "updated_at": "2026-01-15T11:30:00+00:00"
+      },
+      {
+        "id": "workflow_change_request",
+        "type": "Workflow",
+        "label": "Change Request Workflow",
+        "aliases": ["CR workflow", "change process"],
+        "attributes": {
+          "trigger": "client requests a data definition change",
+          "steps_known": ["Alex reviews impact", "Jordan approves internally"],
+          "steps_unknown": ["client-side approval path is undocumented"]
+        },
+        "status": "provisional",
+        "confidence": 0.45,
+        "provenance": ["ticket_falcon_42", "meeting_2026_03_15"],
+        "created_at": "2026-03-15T09:30:00+00:00",
+        "updated_at": "2026-03-15T09:30:00+00:00"
+      },
+      {
+        "id": "risk_pipeline_knowledge",
+        "type": "Risk",
+        "label": "Undocumented Pipeline Logic",
+        "aliases": [],
+        "attributes": {
+          "severity": "high",
+          "description": "Alex is the only person who understands the Snowflake-to-Tableau transformation logic. No runbook exists."
+        },
+        "status": "provisional",
+        "confidence": 0.88,
+        "provenance": ["handoff_notes_draft", "meeting_2026_03_15"],
+        "created_at": "2026-03-15T09:30:00+00:00",
+        "updated_at": "2026-03-15T09:30:00+00:00"
+      }
+    ],
+
+    "edges": [
+      {
+        "id": "edge_alex_works_on_falcon",
+        "type": "WORKS_ON",
+        "source_id": "person_alex_miller",
+        "target_id": "project_falcon",
+        "attributes": {"role_on_project": "Lead Data Analyst"},
+        "status": "confirmed",
+        "confidence": 1.0,
+        "provenance": ["roster_v2"],
+        "created_at": "2025-11-01T09:00:00+00:00",
+        "updated_at": "2025-11-01T09:00:00+00:00"
+      },
+      {
+        "id": "edge_alex_reports_to_jordan",
+        "type": "REPORTS_TO",
+        "source_id": "person_alex_miller",
+        "target_id": "person_jordan_lee",
+        "attributes": {},
+        "status": "confirmed",
+        "confidence": 0.95,
+        "provenance": ["org_chart_q4"],
+        "created_at": "2025-11-01T09:00:00+00:00",
+        "updated_at": "2025-11-01T09:00:00+00:00"
+      },
+      {
+        "id": "edge_jordan_owns_falcon",
+        "type": "OWNS",
+        "source_id": "person_jordan_lee",
+        "target_id": "project_falcon",
+        "attributes": {},
+        "status": "confirmed",
+        "confidence": 0.95,
+        "provenance": ["org_chart_q4"],
+        "created_at": "2025-11-01T09:00:00+00:00",
+        "updated_at": "2025-11-01T09:00:00+00:00"
+      },
+      {
+        "id": "edge_alex_uses_tableau",
+        "type": "USES",
+        "source_id": "person_alex_miller",
+        "target_id": "system_tableau",
+        "attributes": {"frequency": "daily"},
+        "status": "provisional",
+        "confidence": 0.85,
+        "provenance": ["handoff_notes_draft"],
+        "created_at": "2026-03-10T10:00:00+00:00",
+        "updated_at": "2026-03-10T10:00:00+00:00"
+      },
+      {
+        "id": "edge_alex_uses_snowflake",
+        "type": "USES",
+        "source_id": "person_alex_miller",
+        "target_id": "system_snowflake",
+        "attributes": {"frequency": "daily", "access_level": "read/write"},
+        "status": "provisional",
+        "confidence": 0.9,
+        "provenance": ["ticket_falcon_58", "handoff_notes_draft"],
+        "created_at": "2026-03-10T10:00:00+00:00",
+        "updated_at": "2026-03-10T10:00:00+00:00"
+      },
+      {
+        "id": "edge_falcon_depends_on_snowflake",
+        "type": "DEPENDS_ON",
+        "source_id": "project_falcon",
+        "target_id": "system_snowflake",
+        "attributes": {},
+        "status": "provisional",
+        "confidence": 0.9,
+        "provenance": ["ticket_falcon_58"],
+        "created_at": "2026-03-10T10:00:00+00:00",
+        "updated_at": "2026-03-10T10:00:00+00:00"
+      },
+      {
+        "id": "edge_alex_communicates_with_richard_jones",
+        "type": "COMMUNICATES_WITH",
+        "source_id": "person_alex_miller",
+        "target_id": "person_richard_jones",
+        "attributes": {"context": "data definition changes"},
+        "status": "provisional",
+        "confidence": 0.65,
+        "provenance": ["email_client_sync_jan"],
+        "created_at": "2026-01-15T11:30:00+00:00",
+        "updated_at": "2026-01-15T11:30:00+00:00"
+      },
+      {
+        "id": "edge_doc_documents_workflow",
+        "type": "DOCUMENTS",
+        "source_id": "doc_data_definitions",
+        "target_id": "workflow_change_request",
+        "attributes": {"completeness": "partial"},
+        "status": "provisional",
+        "confidence": 0.55,
+        "provenance": ["email_client_sync_jan"],
+        "created_at": "2026-01-15T11:30:00+00:00",
+        "updated_at": "2026-01-15T11:30:00+00:00"
+      },
+      {
+        "id": "edge_risk_affects_falcon",
+        "type": "AFFECTS",
+        "source_id": "risk_pipeline_knowledge",
+        "target_id": "project_falcon",
+        "attributes": {},
+        "status": "provisional",
+        "confidence": 0.88,
+        "provenance": ["handoff_notes_draft", "meeting_2026_03_15"],
+        "created_at": "2026-03-15T09:30:00+00:00",
+        "updated_at": "2026-03-15T09:30:00+00:00"
+      }
+    ]
+  },
+
+  "open_questions": [
+    {
+      "question_id": "q_seed_001",
+      "text": "What is the complete client-side approval path for change requests?",
+      "rationale": "workflow_change_request node has confidence 0.45; client-side steps are explicitly flagged as unknown.",
+      "target_category": "workflows",
+      "priority": "high"
+    },
+    {
+      "question_id": "q_seed_002",
+      "text": "Who owns and maintains the Snowflake-to-Tableau transformation pipeline?",
+      "rationale": "risk_pipeline_knowledge node flags this as undocumented. System owner fields are empty on both system nodes.",
+      "target_category": "systems",
+      "priority": "high"
+    },
+    {
+      "question_id": "q_seed_003",
+      "text": "What is the escalation path when the Tableau refresh fails overnight?",
+      "rationale": "No ESCALATES_TO edge exists from any system node. FALCON-22 suggests this happens but no owner is recorded.",
+      "target_category": "risks",
+      "priority": "medium"
+    }
+  ],
+
+  "ambiguities": [
+    {
+      "ambiguity_id": "amb_seed_001",
+      "kind": "ambiguous_entity",
+      "target": "Richard",
+      "reason": "Two provisional Person nodes share the alias 'Richard': Richard Jones (client PO, confidence 0.72) and Richard Smith (internal PM, confidence 0.58). FALCON-42 comment reads 'waiting on Richard to unblock this' without further context.",
+      "suggested_question": "In ticket FALCON-42, a comment mentions waiting on 'Richard' to unblock the change request. Was that Richard Jones on the client side, or Richard Smith internally?",
+      "priority": "high",
+      "source_turn_id": "seed",
+      "resolved": false
+    }
+  ]
+}
