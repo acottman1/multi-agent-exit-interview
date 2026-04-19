@@ -31,4 +31,5 @@ markers = [
     "unit: pure logic, no I/O",
     "contract: validate agent JSON schemas",
     "integration: full turn-loop fixtures",
+    "eval: live LLM evaluation — requires ANTHROPIC_API_KEY",
 ]

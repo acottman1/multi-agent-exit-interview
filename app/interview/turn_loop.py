@@ -31,6 +31,7 @@ from app.agents.graph_mapper import map_to_graph_updates
 from app.agents.relationship_extractor import extract_relationships
 from app.core.models import (
     ClarificationOutput,
+    EntityExtractionOutput,
     InterviewTurn,
     OpenQuestion,
     OrchestratorOutput,
@@ -87,16 +88,13 @@ async def run_turn(
 
     # 4. Parallel fan-out of the five analyzers (Constraint §26-1)
     known_node_ids = [n.id for n in state.graph.nodes if n.status != "superseded"]
-    existing_aliases = {
-        n.id: [n.label, *n.aliases]
-        for n in state.graph.nodes
-        if n.status != "superseded"
-    }
-    ambiguous_aliases = _ambiguous_alias_map(state)
+    # surface_form → [node_ids] so entity extractor can flag is_ambiguous correctly
+    alias_to_nodes = _alias_to_nodes_map(state)
+    ambiguous_aliases = {k: v for k, v in alias_to_nodes.items() if len(v) > 1}
 
     entity_out, relationship_out, attribute_out, clarification_out, coverage_out = (
         await asyncio.gather(
-            extract_entities(turn, existing_aliases),
+            extract_entities(turn, alias_to_nodes),
             extract_relationships(turn, known_node_ids),
             extract_attributes(turn, known_node_ids),
             detect_clarifications(turn, ambiguous_aliases),
@@ -104,12 +102,15 @@ async def run_turn(
         )
     )
 
-    # 5. Graph mapper runs AFTER the extractors because it consumes their outputs
+    # 5. Resolve any open ambiguity that this turn's answer addressed
+    _resolve_answered_ambiguities(state, orchestrator_output, entity_out)
+
+    # 6. Graph mapper runs AFTER the extractors because it consumes their outputs
     mapping_out = await map_to_graph_updates(
         entity_out, relationship_out, attribute_out
     )
 
-    # 6. Bundle into a ProposedUpdate and commit via the Phase 3 updater
+    # 7. Bundle into a ProposedUpdate and commit via the Phase 3 updater
     update = ProposedUpdate(
         source_turn_id=turn.turn_id,
         entity_extraction=entity_out,
@@ -121,7 +122,7 @@ async def run_turn(
     state.proposed_updates.append(update)
     apply_result = apply_proposed_update(state, update)
 
-    # 7. Book-keep coverage + convert clarifications into open questions
+    # 8. Book-keep coverage + convert clarifications into open questions
     state.coverage = coverage_out.updated_scores
     _append_clarifications_as_open_questions(state, clarification_out)
 
@@ -161,18 +162,53 @@ async def run_interview(
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _ambiguous_alias_map(state: SharedInterviewState) -> dict[str, list[str]]:
+def _alias_to_nodes_map(state: SharedInterviewState) -> dict[str, list[str]]:
     """
-    Surface forms shared by more than one non-superseded node.
-    Passed to the clarification agent so it can cheaply spot ambiguous refs.
+    Map every surface form (label + aliases) to the list of non-superseded node
+    IDs that carry it. Passed to the entity extractor so it can flag is_ambiguous
+    when a name matches multiple existing nodes.
     """
-    alias_to_nodes: dict[str, list[str]] = {}
+    result: dict[str, list[str]] = {}
     for node in state.graph.nodes:
         if node.status == "superseded":
             continue
         for surface in [node.label, *node.aliases]:
-            alias_to_nodes.setdefault(surface, []).append(node.id)
-    return {alias: ids for alias, ids in alias_to_nodes.items() if len(ids) > 1}
+            result.setdefault(surface, []).append(node.id)
+    return result
+
+
+def _resolve_answered_ambiguities(
+    state: SharedInterviewState,
+    orchestrator_output: OrchestratorOutput,
+    entity_out: EntityExtractionOutput,
+) -> None:
+    """
+    If this turn was answering an ambiguity question, check whether the
+    interviewee's extracted entities resolve it.
+
+    Resolution heuristic: the answer named an unambiguous entity whose label
+    contains the ambiguity's target string (e.g. "Richard Jones" resolves the
+    "Richard" ambiguity). This keeps the orchestrator from re-asking.
+    """
+    if orchestrator_output.target_category != "ambiguity_resolution":
+        return
+    if not orchestrator_output.question_id.startswith("q_amb_"):
+        return
+
+    amb_id = orchestrator_output.question_id[len("q_amb_"):]
+    for amb in state.ambiguities:
+        if amb.ambiguity_id != amb_id or amb.resolved:
+            break
+        for entity in entity_out.entities:
+            if not entity.is_ambiguous and amb.target.lower() in entity.label.lower():
+                amb.resolved = True
+                logger.info(
+                    "Ambiguity %r resolved — interviewee named %r.",
+                    amb_id,
+                    entity.label,
+                )
+                break
+        break
 
 
 def _append_clarifications_as_open_questions(
