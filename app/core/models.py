@@ -107,12 +107,12 @@ class Ambiguity(BaseModel):
 # ── Coverage scores ───────────────────────────────────────────────────────────
 
 class CoverageScores(BaseModel):
-    people: float = Field(0.0, ge=0.0, le=1.0)
-    systems: float = Field(0.0, ge=0.0, le=1.0)
-    workflows: float = Field(0.0, ge=0.0, le=1.0)
-    stakeholders: float = Field(0.0, ge=0.0, le=1.0)
-    risks: float = Field(0.0, ge=0.0, le=1.0)
-    undocumented_knowledge: float = Field(0.0, ge=0.0, le=1.0)
+    people: float = Field(default=0.0, ge=0.0, le=1.0)
+    systems: float = Field(default=0.0, ge=0.0, le=1.0)
+    workflows: float = Field(default=0.0, ge=0.0, le=1.0)
+    stakeholders: float = Field(default=0.0, ge=0.0, le=1.0)
+    risks: float = Field(default=0.0, ge=0.0, le=1.0)
+    undocumented_knowledge: float = Field(default=0.0, ge=0.0, le=1.0)
 
 
 # ── Agent output: Entity extraction ───────────────────────────────────────────
