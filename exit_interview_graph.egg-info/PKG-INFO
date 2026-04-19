@@ -1,0 +1,13 @@
+Metadata-Version: 2.4
+Name: exit-interview-graph
+Version: 0.1.0
+Requires-Python: >=3.11
+Requires-Dist: pydantic>=2.7
+Requires-Dist: fastapi>=0.111
+Requires-Dist: uvicorn[standard]>=0.29
+Requires-Dist: instructor>=1.3
+Requires-Dist: anthropic>=0.26
+Provides-Extra: dev
+Requires-Dist: pytest>=8; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.23; extra == "dev"
+Requires-Dist: httpx>=0.27; extra == "dev"
