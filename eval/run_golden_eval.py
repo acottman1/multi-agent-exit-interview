@@ -7,9 +7,14 @@ and prints a structured report answering the research question:
     Does this multi-agent panel actually capture knowledge accurately?
 
 Usage:
-    python -m eval.run_golden_eval              # run both scenarios
-    python -m eval.run_golden_eval --only helpful
-    python -m eval.run_golden_eval --only vague
+    python -m eval.run_golden_eval                    # run all scenarios
+    python -m eval.run_golden_eval --only helpful     # original fixtures
+    python -m eval.run_golden_eval --only lena        # ERP modernization
+    python -m eval.run_golden_eval --only noah        # cloud migration
+    python -m eval.run_golden_eval --only victor      # data platform
+    python -m eval.run_golden_eval --only aisha       # cybersecurity
+    python -m eval.run_golden_eval --only sofia       # client onboarding
+    python -m eval.run_golden_eval --no-seed          # all scenarios, blank graph start
 
 Requires: ANTHROPIC_API_KEY environment variable.
 """
@@ -21,14 +26,19 @@ import os
 import sys
 import textwrap
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 # Ensure the project root is on the path when run as __main__.
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
+from app.core.models import SharedInterviewState
+from app.graph.schema import KnowledgeGraph
 from app.ingestion.loaders import load_initial_state
 from app.interview.turn_loop import TurnResult, run_interview
 from app.vault.vault_compiler import compile_vault, save_final_state
+
+_DEFAULT_SEED = Path(__file__).parent.parent / "app" / "ingestion" / "dummy_data" / "initial_state.json"
 
 
 # ── Report data structures ────────────────────────────────────────────────────
@@ -113,8 +123,19 @@ def _summarise_turn(
     )
 
 
-async def run_scenario(scenario_name: str, fixture_module) -> EvalReport:
-    state = load_initial_state(fixture_module.INTERVIEWEE)
+async def run_scenario(
+    scenario_name: str,
+    fixture_module,
+    no_seed: bool = False,
+) -> EvalReport:
+    if no_seed:
+        state = SharedInterviewState(
+            interviewee=fixture_module.INTERVIEWEE,
+            graph=KnowledgeGraph(nodes=[], edges=[]),
+        )
+    else:
+        seed_path = getattr(fixture_module, "SEED_PATH", _DEFAULT_SEED)
+        state = load_initial_state(fixture_module.INTERVIEWEE, path=seed_path)
     initial_count = len(state.graph.nodes)
     prev_cov = {f: 0.0 for f in state.coverage.model_fields}
 
@@ -278,25 +299,43 @@ def print_report(report: EvalReport) -> None:
     print(f"{'═' * width}\n")
 
 
+# ── Scenario registry ─────────────────────────────────────────────────────────
+
+_SCENARIO_REGISTRY: dict[str, tuple[str, str]] = {
+    "helpful":    ("Helpful Alex — clear cooperative answers",          "helpful_alex"),
+    "vague":      ("Vague Jordan — evasive contradictory answers",      "vague_jordan"),
+    "lena":       ("Cooperative Lena — ERP modernization handoff",      "cooperative_lena"),
+    "noah":       ("Timid Noah — cloud migration support rollover",     "timid_noah"),
+    "victor":     ("Negative Victor — data platform contractor exit",   "negative_victor"),
+    "aisha":      ("Technical Aisha — cybersecurity compliance",        "technical_aisha"),
+    "sofia":      ("Vague Sofia — client onboarding operations",        "vague_sofia"),
+}
+
+
 # ── Entry point ───────────────────────────────────────────────────────────────
 
-async def main(only: str | None = None) -> int:
+async def main(only: str | None = None, no_seed: bool = False) -> int:
     if not os.getenv("ANTHROPIC_API_KEY"):
         print("ERROR: ANTHROPIC_API_KEY is not set.", file=sys.stderr)
         return 1
 
-    from tests.fixtures.golden_interviews import helpful_alex, vague_jordan
+    import importlib
+    import tests.fixtures.golden_interviews  # ensure package is importable
 
+    keys = [only] if only else list(_SCENARIO_REGISTRY)
     scenarios = []
-    if only != "vague":
-        scenarios.append(("Helpful Alex — clear cooperative answers", helpful_alex))
-    if only != "helpful":
-        scenarios.append(("Vague Jordan — evasive contradictory answers", vague_jordan))
+    for key in keys:
+        label, module_name = _SCENARIO_REGISTRY[key]
+        mod = importlib.import_module(f"tests.fixtures.golden_interviews.{module_name}")
+        scenarios.append((label, mod))
+
+    if no_seed:
+        print("  ⚠  --no-seed active: starting each scenario with an empty graph.\n")
 
     all_passed = True
     for name, fixture in scenarios:
         print(f"\nRunning scenario: {name} …")
-        report = await run_scenario(name, fixture)
+        report = await run_scenario(name, fixture, no_seed=no_seed)
         print_report(report)
         if report.assertions_failed:
             all_passed = False
@@ -308,8 +347,18 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run golden interview evaluations.")
     parser.add_argument(
         "--only",
-        choices=["helpful", "vague"],
-        help="Run only one scenario.",
+        choices=list(_SCENARIO_REGISTRY),
+        help="Run only one scenario by key.",
+    )
+    parser.add_argument(
+        "--no-seed",
+        action="store_true",
+        help=(
+            "Start each scenario with a blank graph (no seeded nodes, questions, "
+            "or ambiguities). Useful for measuring raw extraction quality without "
+            "pre-primed context. Note: scripted golden tests pin answers against "
+            "seed-derived question order; use with live LLM responses for best results."
+        ),
     )
     args = parser.parse_args()
-    sys.exit(asyncio.run(main(args.only)))
+    sys.exit(asyncio.run(main(args.only, no_seed=args.no_seed)))
