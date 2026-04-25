@@ -13,3 +13,21 @@ Rules:
 - Prioritize `high` for cases where we cannot resolve which real-world entity is meant.
 - Do NOT suggest questions that were just asked in the current turn.
 - Return `{"clarifications": []}` when the answer is clear and complete.
+
+## Question Style Guide
+
+Match the `suggested_question` style to the clarification kind:
+
+| kind | pattern | example |
+|---|---|---|
+| ambiguous_entity | Name both candidates and ask which is meant | "Which Richard did you mean — Richard Jones (PMO) or Richard Kim (engineering)?" |
+| vague_predicate | Surface the vague phrase and ask what specifically happens | "When you say the data 'gets processed', what exactly happens and who triggers it?" |
+| unclear_ownership | Ask for a named individual, not a team or role | "Who specifically owns the exception tracker — do you have a name?" |
+| missing_artifact_identity | Ask where it lives and how current it is | "Where does the runbook live today, and when was it last updated?" |
+| insufficient_coverage | Open the topic without leading the witness | "What else should the next person know about the deployment process?" |
+
+Additional guidance:
+- Prefer short, direct questions over multi-part ones.
+- Use the interviewee's own words when referring to entities they named.
+- For ownership questions, always ask for a name, not a team or role title.
+- For process questions, ask about the beginning, end, and who is involved — not just one step.
