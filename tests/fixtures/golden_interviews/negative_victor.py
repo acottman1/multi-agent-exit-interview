@@ -89,7 +89,9 @@ EXPECTED_COVERAGE_ABOVE_ZERO: list[str] = [
 MIN_NEW_NODES: int = 1  # at minimum Priyanka Suresh (resolved from ambiguity)
 
 # Frustration venting should not produce hallucinated entity nodes.
+# Note: "leadership demos" is a legitimate task Victor mentioned; we guard
+# against a standalone vague authority-figure node, not the phrase "leadership".
 LABELS_THAT_MUST_NOT_EXIST: list[str] = [
-    "Leadership",
+    "Leadership Team",
     "Management",
 ]

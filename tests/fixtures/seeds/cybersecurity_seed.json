@@ -165,7 +165,7 @@
       },
       {
         "id": "edge_drata_generates_access_review",
-        "type": "TRIGGERS",
+        "type": "RELATED_TO",
         "source_id": "system_drata",
         "target_id": "workflow_quarterly_access_review",
         "attributes": {},

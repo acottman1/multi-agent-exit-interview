@@ -22,12 +22,23 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import importlib
 import os
 import sys
 import textwrap
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+
+# UTF-8 output so box-drawing chars and emoji survive Windows terminals.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+# Load .env before anything else so ANTHROPIC_API_KEY is available.
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 # Ensure the project root is on the path when run as __main__.
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
@@ -51,7 +62,6 @@ class TurnSummary:
     entities_extracted: list[str]
     relationships_extracted: list[str]
     clarifications: list[str]
-    coverage_delta: dict[str, float]
     nodes_created: int
     nodes_updated: int
 
@@ -60,6 +70,7 @@ class TurnSummary:
 class EvalReport:
     scenario_name: str
     interviewee_name: str
+    seed_used: str
     turn_summaries: list[TurnSummary] = field(default_factory=list)
     assertions_passed: list[str] = field(default_factory=list)
     assertions_failed: list[str] = field(default_factory=list)
@@ -67,7 +78,7 @@ class EvalReport:
     initial_node_count: int = 0
     final_coverage: dict[str, float] = field(default_factory=dict)
     total_clarifications: int = 0
-    richard_ambiguity_resolved: bool = False
+    primary_ambiguity_resolved: bool = False
 
 
 # ── Runner ────────────────────────────────────────────────────────────────────
@@ -79,10 +90,7 @@ def _scripted(answers: list[str]):
     return provider
 
 
-def _summarise_turn(
-    result: TurnResult,
-    prev_coverage: dict[str, float],
-) -> TurnSummary:
+def _summarise_turn(result: TurnResult) -> TurnSummary:
     entity_out = result.proposed_update.entity_extraction
     rel_out = result.proposed_update.relationship_extraction
     clar_out = result.proposed_update.clarifications
@@ -103,28 +111,24 @@ def _summarise_turn(
         for c in clar_out.clarifications:
             clarifications.append(f"[{c.priority.upper()}] {c.suggested_question}")
 
-    # Compute coverage delta
     apply = result.apply_result
     created = apply.created_count
-    updated = apply.promoted_count + len([
-        c for c in apply.node_changes if c.op == "updated"
-    ])
+    updated = apply.promoted_count + len([c for c in apply.node_changes if c.op == "updated"])
 
     return TurnSummary(
         turn_number=result.turn.turn_number,
         question=result.turn.question,
-        answer_preview=result.turn.answer[:120] + ("…" if len(result.turn.answer) > 120 else ""),
+        answer_preview=result.turn.answer[:120] + ("..." if len(result.turn.answer) > 120 else ""),
         entities_extracted=entities,
         relationships_extracted=relationships,
         clarifications=clarifications,
-        coverage_delta={},   # filled by caller who has before/after
         nodes_created=created,
         nodes_updated=updated,
     )
 
 
 async def run_scenario(
-    scenario_name: str,
+    scenario_key: str,
     fixture_module,
     no_seed: bool = False,
 ) -> EvalReport:
@@ -133,15 +137,20 @@ async def run_scenario(
             interviewee=fixture_module.INTERVIEWEE,
             graph=KnowledgeGraph(nodes=[], edges=[]),
         )
+        seed_label = "none (empty graph)"
     else:
         seed_path = getattr(fixture_module, "SEED_PATH", _DEFAULT_SEED)
         state = load_initial_state(fixture_module.INTERVIEWEE, path=seed_path)
+        seed_label = Path(seed_path).name if seed_path != _DEFAULT_SEED else "initial_state.json"
+
+    display_name = _SCENARIO_REGISTRY[scenario_key][0]
     initial_count = len(state.graph.nodes)
-    prev_cov = {f: 0.0 for f in state.coverage.model_fields}
+    cov_fields = list(type(state.coverage).model_fields)
 
     report = EvalReport(
-        scenario_name=scenario_name,
+        scenario_name=display_name,
         interviewee_name=fixture_module.INTERVIEWEE.name,
+        seed_used=seed_label,
         initial_node_count=initial_count,
     )
 
@@ -152,26 +161,21 @@ async def run_scenario(
     )
 
     for result in results:
-        turn_sum = _summarise_turn(result, prev_cov)
-        prev_cov = {f: getattr(state.coverage, f) for f in state.coverage.model_fields}
-        report.turn_summaries.append(turn_sum)
-        report.total_clarifications += len(turn_sum.clarifications)
+        report.turn_summaries.append(_summarise_turn(result))
+        report.total_clarifications += len(report.turn_summaries[-1].clarifications)
 
     report.final_node_count = len(state.graph.nodes)
-    report.final_coverage = {f: getattr(state.coverage, f) for f in state.coverage.model_fields}
+    report.final_coverage = {f: getattr(state.coverage, f) for f in cov_fields}
 
-    richard_amb = next(
-        (a for a in state.ambiguities if a.ambiguity_id == "amb_seed_001"), None
-    )
-    report.richard_ambiguity_resolved = richard_amb.resolved if richard_amb else False
+    amb_id = getattr(fixture_module, "RICHARD_AMBIGUITY_ID", "amb_seed_001")
+    primary_amb = next((a for a in state.ambiguities if a.ambiguity_id == amb_id), None)
+    report.primary_ambiguity_resolved = primary_amb.resolved if primary_amb else False
 
-    # Persist state and compile vault
-    slug = scenario_name.split()[0].lower()          # e.g. "helpful", "vague"
-    runs_dir = Path("runs") / slug
+    # Persist state and compile vault under runs/<scenario_key>/
+    runs_dir = Path("runs") / scenario_key
     save_final_state(state, runs_dir / "final_state.json")
     compile_vault(state, runs_dir / "exit_interview_vault")
 
-    # Run assertions from fixture
     _check_assertions(report, state, fixture_module)
 
     return report
@@ -229,13 +233,13 @@ def _check_assertions(report: EvalReport, state, fixture_module) -> None:
         msg = f"New nodes: {new_nodes} ({'✓' if ok else '✗'} ≤{fixture_module.MAX_NEW_NODES})"
         (report.assertions_passed if ok else report.assertions_failed).append(msg)
 
-    # Universal ambiguity check
-    ok = report.richard_ambiguity_resolved
+    # Primary ambiguity check
     if hasattr(fixture_module, "AMBIGUITY_MUST_REMAIN_UNRESOLVED"):
-        ok = not report.richard_ambiguity_resolved
-        msg = f"Richard ambiguity unresolved: {'✓' if ok else '✗'}"
+        ok = not report.primary_ambiguity_resolved
+        msg = f"Primary ambiguity unresolved: {'PASS' if ok else 'FAIL'}"
     else:
-        msg = f"Richard ambiguity resolved: {'✓' if ok else '✗'}"
+        ok = report.primary_ambiguity_resolved
+        msg = f"Primary ambiguity resolved: {'PASS' if ok else 'FAIL'}"
     (report.assertions_passed if ok else report.assertions_failed).append(msg)
 
 
@@ -243,12 +247,13 @@ def _check_assertions(report: EvalReport, state, fixture_module) -> None:
 
 def print_report(report: EvalReport) -> None:
     width = 72
-    divider = "─" * width
+    divider = "=" * width
+    thin = "-" * width
 
-    print(f"\n{'═' * width}")
+    print(f"\n{divider}")
     print(f"  GOLDEN EVAL: {report.scenario_name.upper()}")
-    print(f"  Interviewee: {report.interviewee_name}")
-    print(f"{'═' * width}")
+    print(f"  Interviewee: {report.interviewee_name}  |  Seed: {report.seed_used}")
+    print(divider)
 
     for ts in report.turn_summaries:
         print(f"\n  TURN {ts.turn_number}")
@@ -258,45 +263,46 @@ def print_report(report: EvalReport) -> None:
         if ts.entities_extracted:
             print("  Entities extracted:")
             for e in ts.entities_extracted:
-                print(f"    • {e}")
+                print(f"    - {e}")
         else:
             print("  Entities extracted: (none)")
 
         if ts.relationships_extracted:
             print("  Relationships:")
             for r in ts.relationships_extracted:
-                print(f"    • {r}")
+                print(f"    - {r}")
 
         if ts.clarifications:
             print("  Clarifications generated:")
             for c in ts.clarifications:
-                print(f"    ⚠ {c}")
+                print(f"    ! {c}")
 
         created_label = f"{ts.nodes_created} created" if ts.nodes_created else "none created"
         print(f"  Graph ops: {created_label}, {ts.nodes_updated} updated")
 
-    print(f"\n{divider}")
+    print(f"\n{thin}")
     print("  FINAL STATE")
-    print(f"  Nodes: {report.initial_node_count} → {report.final_node_count} "
+    print(f"  Nodes: {report.initial_node_count} -> {report.final_node_count} "
           f"(+{report.final_node_count - report.initial_node_count})")
     print(f"  Total clarifications generated: {report.total_clarifications}")
-    print(f"  Richard ambiguity resolved: {report.richard_ambiguity_resolved}")
+    print(f"  Primary ambiguity resolved: {report.primary_ambiguity_resolved}")
     print("  Coverage scores:")
     for cat, score in report.final_coverage.items():
-        bar = "█" * int(score * 20)
-        print(f"    {cat:<25} {score:.2f}  {bar}")
+        filled = int(score * 20)
+        bar = "#" * filled + "." * (20 - filled)
+        print(f"    {cat:<25} {score:.2f}  [{bar}]")
 
-    print(f"\n{divider}")
+    print(f"\n{thin}")
     print(f"  ASSERTIONS ({len(report.assertions_passed)} passed, "
           f"{len(report.assertions_failed)} failed)")
     for msg in report.assertions_passed:
-        print(f"    ✓ {msg}")
+        print(f"    PASS  {msg}")
     for msg in report.assertions_failed:
-        print(f"    ✗ {msg}")
+        print(f"    FAIL  {msg}")
 
     status = "PASS" if not report.assertions_failed else "FAIL"
     print(f"\n  RESULT: {status}")
-    print(f"{'═' * width}\n")
+    print(f"{divider}\n")
 
 
 # ── Scenario registry ─────────────────────────────────────────────────────────
@@ -319,23 +325,17 @@ async def main(only: str | None = None, no_seed: bool = False) -> int:
         print("ERROR: ANTHROPIC_API_KEY is not set.", file=sys.stderr)
         return 1
 
-    import importlib
-    import tests.fixtures.golden_interviews  # ensure package is importable
-
     keys = [only] if only else list(_SCENARIO_REGISTRY)
-    scenarios = []
-    for key in keys:
-        label, module_name = _SCENARIO_REGISTRY[key]
-        mod = importlib.import_module(f"tests.fixtures.golden_interviews.{module_name}")
-        scenarios.append((label, mod))
 
     if no_seed:
-        print("  ⚠  --no-seed active: starting each scenario with an empty graph.\n")
+        print("  NOTE: --no-seed active: starting each scenario with an empty graph.\n")
 
     all_passed = True
-    for name, fixture in scenarios:
-        print(f"\nRunning scenario: {name} …")
-        report = await run_scenario(name, fixture, no_seed=no_seed)
+    for key in keys:
+        display_name, module_path = _SCENARIO_REGISTRY[key]
+        fixture = importlib.import_module(f"tests.fixtures.golden_interviews.{module_path}")
+        print(f"\nRunning scenario: {display_name} ...")
+        report = await run_scenario(key, fixture, no_seed=no_seed)
         print_report(report)
         if report.assertions_failed:
             all_passed = False

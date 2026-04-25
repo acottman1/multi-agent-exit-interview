@@ -1,16 +1,23 @@
 {
-  "_comment": "Seed state for Scenario 5 — Client Onboarding Operations Transfer (Sofia Mendes). Pre-ingested from CRM export and onboarding process docs.",
+  "_comment": "Seed state for Scenario 5 \u00e2\u20ac\u201d Client Onboarding Operations Transfer (Sofia Mendes). Pre-ingested from CRM export and onboarding process docs.",
   "graph": {
     "nodes": [
       {
         "id": "project_onboarding_program",
         "type": "Project",
         "label": "Enterprise Client Onboarding Program",
-        "aliases": ["client onboarding", "onboarding program"],
-        "attributes": {"status_note": "Active; 3 clients in flight"},
+        "aliases": [
+          "client onboarding",
+          "onboarding program"
+        ],
+        "attributes": {
+          "status_note": "Active; 3 clients in flight"
+        },
         "status": "confirmed",
         "confidence": 1.0,
-        "provenance": ["program_charter"],
+        "provenance": [
+          "program_charter"
+        ],
         "created_at": "2025-01-15T09:00:00+00:00",
         "updated_at": "2025-01-15T09:00:00+00:00"
       },
@@ -18,11 +25,19 @@
         "id": "person_sofia_mendes",
         "type": "Person",
         "label": "Sofia Mendes",
-        "aliases": ["Sofia"],
-        "attributes": {"employment_type": "contractor", "role": "Onboarding Coordinator", "departure_date": "2026-04-30"},
+        "aliases": [
+          "Sofia"
+        ],
+        "attributes": {
+          "employment_type": "contractor",
+          "role": "Onboarding Coordinator",
+          "departure_date": "2026-04-30"
+        },
         "status": "confirmed",
         "confidence": 1.0,
-        "provenance": ["project_roster"],
+        "provenance": [
+          "project_roster"
+        ],
         "created_at": "2025-01-15T09:00:00+00:00",
         "updated_at": "2025-01-15T09:00:00+00:00"
       },
@@ -30,11 +45,19 @@
         "id": "person_client_success",
         "type": "Person",
         "label": "Client Success Team",
-        "aliases": ["CS team", "client success"],
-        "attributes": {"role": "relationship management", "specific_owner": "unknown"},
+        "aliases": [
+          "CS team",
+          "client success"
+        ],
+        "attributes": {
+          "role": "relationship management",
+          "specific_owner": "unknown"
+        },
         "status": "provisional",
         "confidence": 0.55,
-        "provenance": ["process_docs"],
+        "provenance": [
+          "process_docs"
+        ],
         "created_at": "2025-03-01T10:00:00+00:00",
         "updated_at": "2025-03-01T10:00:00+00:00"
       },
@@ -42,11 +65,19 @@
         "id": "person_impl_lead",
         "type": "Person",
         "label": "Implementation Lead",
-        "aliases": ["impl lead", "the implementation team"],
-        "attributes": {"role": "technical setup", "specific_owner": "unknown"},
+        "aliases": [
+          "impl lead",
+          "the implementation team"
+        ],
+        "attributes": {
+          "role": "technical setup",
+          "specific_owner": "unknown"
+        },
         "status": "provisional",
-        "confidence": 0.50,
-        "provenance": ["process_docs"],
+        "confidence": 0.5,
+        "provenance": [
+          "process_docs"
+        ],
         "created_at": "2025-03-01T10:00:00+00:00",
         "updated_at": "2025-03-01T10:00:00+00:00"
       },
@@ -54,11 +85,19 @@
         "id": "system_salesforce",
         "type": "System",
         "label": "Salesforce",
-        "aliases": ["CRM", "SFDC"],
-        "attributes": {"purpose": "commercial details and account management", "note": "operational nuance not always captured"},
+        "aliases": [
+          "CRM",
+          "SFDC"
+        ],
+        "attributes": {
+          "purpose": "commercial details and account management",
+          "note": "operational nuance not always captured"
+        },
         "status": "confirmed",
         "confidence": 0.92,
-        "provenance": ["program_charter"],
+        "provenance": [
+          "program_charter"
+        ],
         "created_at": "2025-01-15T09:00:00+00:00",
         "updated_at": "2025-01-15T09:00:00+00:00"
       },
@@ -66,11 +105,20 @@
         "id": "doc_onboarding_tracker",
         "type": "Document",
         "label": "Onboarding Tracker",
-        "aliases": ["the tracker", "client tracker"],
-        "attributes": {"location": "unknown", "owner": "unknown", "note": "reliable only after Sofia cleans it up"},
+        "aliases": [
+          "the tracker",
+          "client tracker"
+        ],
+        "attributes": {
+          "location": "unknown",
+          "owner": "unknown",
+          "note": "reliable only after Sofia cleans it up"
+        },
         "status": "provisional",
         "confidence": 0.58,
-        "provenance": ["sofia_handoff_notes"],
+        "provenance": [
+          "sofia_handoff_notes"
+        ],
         "created_at": "2026-01-20T10:00:00+00:00",
         "updated_at": "2026-01-20T10:00:00+00:00"
       },
@@ -78,14 +126,26 @@
         "id": "workflow_kickoff",
         "type": "Workflow",
         "label": "Client Kickoff Process",
-        "aliases": ["kickoff", "kickoff workflow"],
+        "aliases": [
+          "kickoff",
+          "kickoff workflow"
+        ],
         "attributes": {
-          "documented_steps": ["introductions", "confirm timeline", "collect contacts"],
-          "gaps": ["SSO readiness definition unclear", "legal review timing not captured"]
+          "documented_steps": [
+            "introductions",
+            "confirm timeline",
+            "collect contacts"
+          ],
+          "gaps": [
+            "SSO readiness definition unclear",
+            "legal review timing not captured"
+          ]
         },
         "status": "provisional",
         "confidence": 0.48,
-        "provenance": ["process_docs"],
+        "provenance": [
+          "process_docs"
+        ],
         "created_at": "2025-03-01T10:00:00+00:00",
         "updated_at": "2025-03-01T10:00:00+00:00"
       },
@@ -93,14 +153,19 @@
         "id": "workflow_sso_setup",
         "type": "Workflow",
         "label": "SSO Setup Workflow",
-        "aliases": ["SSO", "single sign-on setup"],
+        "aliases": [
+          "SSO",
+          "single sign-on setup"
+        ],
         "attributes": {
           "blocker": "legal or security signoff can be weeks behind stated client readiness",
           "owner": "unknown"
         },
         "status": "provisional",
         "confidence": 0.35,
-        "provenance": ["sofia_handoff_notes"],
+        "provenance": [
+          "sofia_handoff_notes"
+        ],
         "created_at": "2026-01-20T10:00:00+00:00",
         "updated_at": "2026-01-20T10:00:00+00:00"
       },
@@ -109,10 +174,15 @@
         "type": "Risk",
         "label": "Missing Client Technical Owner",
         "aliases": [],
-        "attributes": {"severity": "high", "description": "Top reason for onboarding delays. Client says they are ready but no named internal technical owner exists to action setup tasks."},
+        "attributes": {
+          "severity": "high",
+          "description": "Top reason for onboarding delays. Client says they are ready but no named internal technical owner exists to action setup tasks."
+        },
         "status": "provisional",
         "confidence": 0.88,
-        "provenance": ["sofia_handoff_notes"],
+        "provenance": [
+          "sofia_handoff_notes"
+        ],
         "created_at": "2026-01-20T10:00:00+00:00",
         "updated_at": "2026-01-20T10:00:00+00:00"
       },
@@ -121,10 +191,15 @@
         "type": "Risk",
         "label": "Scope Changes After Kickoff",
         "aliases": [],
-        "attributes": {"severity": "medium", "description": "Clients frequently change product module selections or file format requirements after kickoff, causing timeline slippage."},
+        "attributes": {
+          "severity": "medium",
+          "description": "Clients frequently change product module selections or file format requirements after kickoff, causing timeline slippage."
+        },
         "status": "provisional",
         "confidence": 0.78,
-        "provenance": ["retrospective_notes"],
+        "provenance": [
+          "retrospective_notes"
+        ],
         "created_at": "2026-02-01T10:00:00+00:00",
         "updated_at": "2026-02-01T10:00:00+00:00"
       }
@@ -138,19 +213,25 @@
         "attributes": {},
         "status": "confirmed",
         "confidence": 1.0,
-        "provenance": ["project_roster"],
+        "provenance": [
+          "project_roster"
+        ],
         "created_at": "2025-01-15T09:00:00+00:00",
         "updated_at": "2025-01-15T09:00:00+00:00"
       },
       {
         "id": "edge_salesforce_feeds_tracker",
-        "type": "FEEDS",
+        "type": "RELATED_TO",
         "source_id": "system_salesforce",
         "target_id": "doc_onboarding_tracker",
-        "attributes": {"note": "commercial data only; operational nuance missing"},
+        "attributes": {
+          "note": "commercial data only; operational nuance missing"
+        },
         "status": "provisional",
         "confidence": 0.65,
-        "provenance": ["sofia_handoff_notes"],
+        "provenance": [
+          "sofia_handoff_notes"
+        ],
         "created_at": "2026-01-20T10:00:00+00:00",
         "updated_at": "2026-01-20T10:00:00+00:00"
       }
@@ -160,7 +241,7 @@
     {
       "question_id": "q_onboard_001",
       "text": "What are the tracker fields that actually matter for a new coordinator, and which ones are noise?",
-      "rationale": "Onboarding tracker confidence is 0.58 and is only reliable after manual cleanup — field-level importance undocumented.",
+      "rationale": "Onboarding tracker confidence is 0.58 and is only reliable after manual cleanup \u00e2\u20ac\u201d field-level importance undocumented.",
       "target_category": "undocumented_knowledge",
       "priority": "high"
     },
