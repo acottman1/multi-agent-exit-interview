@@ -206,7 +206,7 @@ class TestPriorityLowConfidenceNode:
             "workflow_cr", "Workflow", "Change Request Workflow", confidence=0.45
         )]))
         out = select_next_question(state)
-        assert "walk me through" in out.next_question.lower()
+        assert "Change Request Workflow" in out.next_question
         assert out.target_category == "workflows"
 
     def test_system_node_gets_system_template(self):
