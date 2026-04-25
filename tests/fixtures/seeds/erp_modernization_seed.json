@@ -1,0 +1,203 @@
+{
+  "_comment": "Seed state for Scenario 1 — ERP Modernization Handoff (Lena Torres). Pre-ingested from project roster and early discovery sessions.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "project_erp",
+        "type": "Project",
+        "label": "ERP Modernization",
+        "aliases": ["ERP project", "the modernization"],
+        "attributes": {"status_note": "Release 1 live; vendor workflow deferred", "start_date": "2025-07-01"},
+        "status": "confirmed",
+        "confidence": 1.0,
+        "provenance": ["project_roster"],
+        "created_at": "2025-07-01T09:00:00+00:00",
+        "updated_at": "2025-07-01T09:00:00+00:00"
+      },
+      {
+        "id": "person_lena_torres",
+        "type": "Person",
+        "label": "Lena Torres",
+        "aliases": ["Lena"],
+        "attributes": {"employment_type": "contractor", "role": "Senior Business Analyst", "departure_date": "2026-04-30"},
+        "status": "confirmed",
+        "confidence": 1.0,
+        "provenance": ["project_roster"],
+        "created_at": "2025-07-01T09:00:00+00:00",
+        "updated_at": "2025-07-01T09:00:00+00:00"
+      },
+      {
+        "id": "person_priya_shah",
+        "type": "Person",
+        "label": "Priya Shah",
+        "aliases": ["Priya"],
+        "attributes": {"side": "client", "department": "Finance Ops"},
+        "status": "provisional",
+        "confidence": 0.70,
+        "provenance": ["kickoff_notes"],
+        "created_at": "2025-08-15T10:00:00+00:00",
+        "updated_at": "2025-08-15T10:00:00+00:00"
+      },
+      {
+        "id": "person_marcus_lee",
+        "type": "Person",
+        "label": "Marcus Lee",
+        "aliases": ["Marcus"],
+        "attributes": {"side": "client", "role": "Integration Lead"},
+        "status": "provisional",
+        "confidence": 0.65,
+        "provenance": ["workshop_dec"],
+        "created_at": "2025-12-10T14:00:00+00:00",
+        "updated_at": "2025-12-10T14:00:00+00:00"
+      },
+      {
+        "id": "person_marcus_b",
+        "type": "Person",
+        "label": "Marcus Baines",
+        "aliases": ["Marcus"],
+        "attributes": {"side": "internal", "role": "Solution Architect"},
+        "status": "provisional",
+        "confidence": 0.52,
+        "provenance": ["org_chart"],
+        "created_at": "2025-12-10T14:00:00+00:00",
+        "updated_at": "2025-12-10T14:00:00+00:00"
+      },
+      {
+        "id": "system_orion_erp",
+        "type": "System",
+        "label": "OrionERP",
+        "aliases": ["Orion", "the new ERP"],
+        "attributes": {"purpose": "target ERP platform", "owner": "unknown"},
+        "status": "provisional",
+        "confidence": 0.88,
+        "provenance": ["project_roster"],
+        "created_at": "2025-07-01T09:00:00+00:00",
+        "updated_at": "2025-07-01T09:00:00+00:00"
+      },
+      {
+        "id": "system_worksphere",
+        "type": "System",
+        "label": "WorkSphere",
+        "aliases": ["legacy HR system", "the old HR"],
+        "attributes": {"purpose": "legacy HR system of record", "owner": "unknown"},
+        "status": "provisional",
+        "confidence": 0.80,
+        "provenance": ["discovery_notes"],
+        "created_at": "2025-08-01T09:00:00+00:00",
+        "updated_at": "2025-08-01T09:00:00+00:00"
+      },
+      {
+        "id": "system_smartsheet",
+        "type": "System",
+        "label": "Smartsheet",
+        "aliases": ["procurement tracker"],
+        "attributes": {"purpose": "procurement tracking", "owner": "unknown"},
+        "status": "provisional",
+        "confidence": 0.75,
+        "provenance": ["discovery_notes"],
+        "created_at": "2025-08-01T09:00:00+00:00",
+        "updated_at": "2025-08-01T09:00:00+00:00"
+      },
+      {
+        "id": "doc_decision_register",
+        "type": "Document",
+        "label": "Decision Register",
+        "aliases": ["decision log", "the register"],
+        "attributes": {"location": "Confluence", "owner": "unknown"},
+        "status": "provisional",
+        "confidence": 0.60,
+        "provenance": ["lena_handoff_notes"],
+        "created_at": "2026-01-15T10:00:00+00:00",
+        "updated_at": "2026-01-15T10:00:00+00:00"
+      },
+      {
+        "id": "workflow_vendor_onboarding",
+        "type": "Workflow",
+        "label": "Vendor Onboarding Workflow",
+        "aliases": ["vendor onboarding", "supplier onboarding"],
+        "attributes": {
+          "documented_start": "OrionERP",
+          "note": "actual start point differs — SharePoint form used for legal review"
+        },
+        "status": "provisional",
+        "confidence": 0.38,
+        "provenance": ["lena_handoff_notes"],
+        "created_at": "2026-01-15T10:00:00+00:00",
+        "updated_at": "2026-01-15T10:00:00+00:00"
+      },
+      {
+        "id": "risk_undocumented_workarounds",
+        "type": "Risk",
+        "label": "Undocumented Process Workarounds",
+        "aliases": [],
+        "attributes": {"severity": "high", "description": "Actual operational paths diverge from published swimlane diagrams; key steps exist only as tribal knowledge."},
+        "status": "provisional",
+        "confidence": 0.85,
+        "provenance": ["lena_handoff_notes"],
+        "created_at": "2026-01-15T10:00:00+00:00",
+        "updated_at": "2026-01-15T10:00:00+00:00"
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge_lena_works_on_erp",
+        "type": "WORKS_ON",
+        "source_id": "person_lena_torres",
+        "target_id": "project_erp",
+        "attributes": {"role_on_project": "Senior Business Analyst"},
+        "status": "confirmed",
+        "confidence": 1.0,
+        "provenance": ["project_roster"],
+        "created_at": "2025-07-01T09:00:00+00:00",
+        "updated_at": "2025-07-01T09:00:00+00:00"
+      },
+      {
+        "id": "edge_erp_depends_worksphere",
+        "type": "DEPENDS_ON",
+        "source_id": "system_orion_erp",
+        "target_id": "system_worksphere",
+        "attributes": {"note": "source-of-truth reconciliation unresolved"},
+        "status": "provisional",
+        "confidence": 0.72,
+        "provenance": ["discovery_notes"],
+        "created_at": "2025-08-01T09:00:00+00:00",
+        "updated_at": "2025-08-01T09:00:00+00:00"
+      }
+    ]
+  },
+  "open_questions": [
+    {
+      "question_id": "q_erp_001",
+      "text": "What is the actual step-by-step path for vendor onboarding, from initial request through OrionERP creation?",
+      "rationale": "vendor_onboarding workflow has confidence 0.38 and a known discrepancy between documented and actual start point.",
+      "target_category": "workflows",
+      "priority": "high"
+    },
+    {
+      "question_id": "q_erp_002",
+      "text": "Who approves supplier exceptions, and what is the rule versus the workaround that gets them unblocked?",
+      "rationale": "Risk node flags undocumented workarounds; no clear owner for supplier exception approval is recorded.",
+      "target_category": "undocumented_knowledge",
+      "priority": "high"
+    },
+    {
+      "question_id": "q_erp_003",
+      "text": "What changed in scope after the January readiness review, and where is that scope change documented?",
+      "rationale": "Decision register node exists but ownership is unknown; scope change is a major handoff risk.",
+      "target_category": "risks",
+      "priority": "medium"
+    }
+  ],
+  "ambiguities": [
+    {
+      "ambiguity_id": "amb_erp_001",
+      "kind": "ambiguous_entity",
+      "target": "Marcus",
+      "reason": "Two provisional Person nodes share the alias 'Marcus': Marcus Lee (client integration lead, confidence 0.65) and Marcus Baines (internal solution architect, confidence 0.52). Workshop notes reference 'Marcus revised the process map' without specifying which.",
+      "suggested_question": "The workshop notes mention that 'Marcus revised the process map after February.' Was that Marcus Lee on the client integration team, or Marcus Baines internally?",
+      "priority": "high",
+      "source_turn_id": "seed",
+      "resolved": false
+    }
+  ]
+}

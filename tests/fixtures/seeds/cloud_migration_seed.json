@@ -1,0 +1,194 @@
+{
+  "_comment": "Seed state for Scenario 2 — Cloud Migration Support Rollover (Noah Kim). Pre-ingested from project roster and incident logs.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "project_cloud_migration",
+        "type": "Project",
+        "label": "Cloud Migration",
+        "aliases": ["the migration", "cloud workstream"],
+        "attributes": {"status_note": "Batch moves ongoing; post-migration incident support active"},
+        "status": "confirmed",
+        "confidence": 1.0,
+        "provenance": ["project_roster"],
+        "created_at": "2025-09-01T09:00:00+00:00",
+        "updated_at": "2025-09-01T09:00:00+00:00"
+      },
+      {
+        "id": "person_noah_kim",
+        "type": "Person",
+        "label": "Noah Kim",
+        "aliases": ["Noah"],
+        "attributes": {"employment_type": "contractor", "role": "Incident Coordination Support", "departure_date": "2026-04-30"},
+        "status": "confirmed",
+        "confidence": 1.0,
+        "provenance": ["project_roster"],
+        "created_at": "2025-09-01T09:00:00+00:00",
+        "updated_at": "2025-09-01T09:00:00+00:00"
+      },
+      {
+        "id": "person_dev_patel",
+        "type": "Person",
+        "label": "Dev Patel",
+        "aliases": ["Dev"],
+        "attributes": {"team": "infrastructure", "role": "Infrastructure Engineer"},
+        "status": "provisional",
+        "confidence": 0.75,
+        "provenance": ["incident_log_jan"],
+        "created_at": "2026-01-20T10:00:00+00:00",
+        "updated_at": "2026-01-20T10:00:00+00:00"
+      },
+      {
+        "id": "person_rachel_app",
+        "type": "Person",
+        "label": "Rachel",
+        "aliases": ["Rachel from app team"],
+        "attributes": {"team": "application support", "last_name": "unknown"},
+        "status": "provisional",
+        "confidence": 0.60,
+        "provenance": ["incident_log_jan"],
+        "created_at": "2026-01-20T10:00:00+00:00",
+        "updated_at": "2026-01-20T10:00:00+00:00"
+      },
+      {
+        "id": "person_rachel_sec",
+        "type": "Person",
+        "label": "Rachel (Security)",
+        "aliases": ["Rachel from security"],
+        "attributes": {"team": "security", "last_name": "unknown"},
+        "status": "provisional",
+        "confidence": 0.45,
+        "provenance": ["incident_log_feb"],
+        "created_at": "2026-02-05T10:00:00+00:00",
+        "updated_at": "2026-02-05T10:00:00+00:00"
+      },
+      {
+        "id": "system_azure_monitor",
+        "type": "System",
+        "label": "Azure Monitor",
+        "aliases": ["the sync dashboard"],
+        "attributes": {"purpose": "directory sync job monitoring", "owner": "unknown"},
+        "status": "provisional",
+        "confidence": 0.80,
+        "provenance": ["incident_log_jan"],
+        "created_at": "2026-01-20T10:00:00+00:00",
+        "updated_at": "2026-01-20T10:00:00+00:00"
+      },
+      {
+        "id": "doc_role_mapping_sheet",
+        "type": "Document",
+        "label": "Role Mapping Spreadsheet",
+        "aliases": ["role mapping file", "the spreadsheet"],
+        "attributes": {"location": "unknown", "owner": "unknown", "note": "sometimes outdated by a day or two"},
+        "status": "provisional",
+        "confidence": 0.65,
+        "provenance": ["incident_log_jan"],
+        "created_at": "2026-01-20T10:00:00+00:00",
+        "updated_at": "2026-01-20T10:00:00+00:00"
+      },
+      {
+        "id": "workflow_access_verification",
+        "type": "Workflow",
+        "label": "Access Verification Workflow",
+        "aliases": ["access check", "post-migration access process"],
+        "attributes": {
+          "documented_as": "automated",
+          "note": "exceptions list still manually reviewed via Teams thread"
+        },
+        "status": "provisional",
+        "confidence": 0.40,
+        "provenance": ["migration_checklist"],
+        "created_at": "2026-02-01T09:00:00+00:00",
+        "updated_at": "2026-02-01T09:00:00+00:00"
+      },
+      {
+        "id": "workflow_escalation",
+        "type": "Workflow",
+        "label": "Escalation Process",
+        "aliases": ["escalation path", "who to call"],
+        "attributes": {
+          "documented_threshold": "escalate as needed",
+          "note": "no concrete severity examples exist"
+        },
+        "status": "provisional",
+        "confidence": 0.30,
+        "provenance": ["process_docs"],
+        "created_at": "2026-02-01T09:00:00+00:00",
+        "updated_at": "2026-02-01T09:00:00+00:00"
+      },
+      {
+        "id": "risk_single_owner_exceptions",
+        "type": "Risk",
+        "label": "Single-Owner Exception Review",
+        "aliases": [],
+        "attributes": {"severity": "high", "description": "Exception list review depends on one person with no documented backup."},
+        "status": "provisional",
+        "confidence": 0.78,
+        "provenance": ["incident_log_feb"],
+        "created_at": "2026-02-05T10:00:00+00:00",
+        "updated_at": "2026-02-05T10:00:00+00:00"
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge_noah_works_on_migration",
+        "type": "WORKS_ON",
+        "source_id": "person_noah_kim",
+        "target_id": "project_cloud_migration",
+        "attributes": {},
+        "status": "confirmed",
+        "confidence": 1.0,
+        "provenance": ["project_roster"],
+        "created_at": "2025-09-01T09:00:00+00:00",
+        "updated_at": "2025-09-01T09:00:00+00:00"
+      },
+      {
+        "id": "edge_dev_owns_azure_monitor",
+        "type": "OWNS",
+        "source_id": "person_dev_patel",
+        "target_id": "system_azure_monitor",
+        "attributes": {},
+        "status": "provisional",
+        "confidence": 0.70,
+        "provenance": ["incident_log_jan"],
+        "created_at": "2026-01-20T10:00:00+00:00",
+        "updated_at": "2026-01-20T10:00:00+00:00"
+      }
+    ]
+  },
+  "open_questions": [
+    {
+      "question_id": "q_cloud_001",
+      "text": "What are the concrete thresholds for when to message someone directly versus using the formal ticket queue?",
+      "rationale": "Escalation process node has confidence 0.30 and only says 'escalate as needed' — no actionable criteria documented.",
+      "target_category": "workflows",
+      "priority": "high"
+    },
+    {
+      "question_id": "q_cloud_002",
+      "text": "Which parts of the access verification process are actually manual, and where does that manual work happen?",
+      "rationale": "Access verification workflow is documented as automated but confidence is 0.40; Teams thread workaround noted.",
+      "target_category": "undocumented_knowledge",
+      "priority": "high"
+    },
+    {
+      "question_id": "q_cloud_003",
+      "text": "How do you distinguish a ticket that signals a broad migration package problem from one that is just a local user issue?",
+      "rationale": "No triage logic is documented; critical for new person to avoid misclassifying systemic failures.",
+      "target_category": "risks",
+      "priority": "medium"
+    }
+  ],
+  "ambiguities": [
+    {
+      "ambiguity_id": "amb_cloud_001",
+      "kind": "ambiguous_entity",
+      "target": "Rachel",
+      "reason": "Two provisional Person nodes share the name 'Rachel': one on the application support team (confidence 0.60) and one in security (confidence 0.45). Incident logs reference 'ask Rachel' without specifying which team.",
+      "suggested_question": "The incident logs mention checking with 'Rachel' on the role mapping questions. Is that Rachel from the application support team, or a different Rachel in security?",
+      "priority": "high",
+      "source_turn_id": "seed",
+      "resolved": false
+    }
+  ]
+}

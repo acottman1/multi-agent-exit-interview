@@ -1,0 +1,215 @@
+{
+  "_comment": "Seed state for Scenario 3 — Data Platform Contractor Exit (Victor Hale). Pre-ingested from repo scan and architecture review.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "project_data_platform",
+        "type": "Project",
+        "label": "Data Platform",
+        "aliases": ["the platform", "analytics platform"],
+        "attributes": {"status_note": "Dashboards live; pipeline stability concerns flagged"},
+        "status": "confirmed",
+        "confidence": 1.0,
+        "provenance": ["architecture_review"],
+        "created_at": "2025-06-01T09:00:00+00:00",
+        "updated_at": "2025-06-01T09:00:00+00:00"
+      },
+      {
+        "id": "person_victor_hale",
+        "type": "Person",
+        "label": "Victor Hale",
+        "aliases": ["Victor"],
+        "attributes": {"employment_type": "contractor", "role": "Data Engineer", "departure_date": "2026-04-30"},
+        "status": "confirmed",
+        "confidence": 1.0,
+        "provenance": ["project_roster"],
+        "created_at": "2025-10-01T09:00:00+00:00",
+        "updated_at": "2025-10-01T09:00:00+00:00"
+      },
+      {
+        "id": "person_priyanka",
+        "type": "Person",
+        "label": "Priyanka",
+        "aliases": ["Priyanka on analytics"],
+        "attributes": {"team": "analytics engineering", "last_name": "unknown"},
+        "status": "provisional",
+        "confidence": 0.68,
+        "provenance": ["incident_slack"],
+        "created_at": "2025-11-15T10:00:00+00:00",
+        "updated_at": "2025-11-15T10:00:00+00:00"
+      },
+      {
+        "id": "person_priyanka_b",
+        "type": "Person",
+        "label": "Priyanka (Platform)",
+        "aliases": ["Priyanka on platform"],
+        "attributes": {"team": "data platform", "last_name": "unknown"},
+        "status": "provisional",
+        "confidence": 0.48,
+        "provenance": ["architecture_review"],
+        "created_at": "2025-11-15T10:00:00+00:00",
+        "updated_at": "2025-11-15T10:00:00+00:00"
+      },
+      {
+        "id": "person_ben",
+        "type": "Person",
+        "label": "Ben",
+        "aliases": ["Ben from platform"],
+        "attributes": {"team": "data platform", "last_name": "unknown", "role": "Scheduler Environment Owner"},
+        "status": "provisional",
+        "confidence": 0.65,
+        "provenance": ["incident_slack"],
+        "created_at": "2025-11-15T10:00:00+00:00",
+        "updated_at": "2025-11-15T10:00:00+00:00"
+      },
+      {
+        "id": "system_airflow",
+        "type": "System",
+        "label": "Airflow",
+        "aliases": ["the scheduler"],
+        "attributes": {"purpose": "pipeline orchestration", "owner": "unknown", "note": "custom variables used for health mart overrides"},
+        "status": "provisional",
+        "confidence": 0.82,
+        "provenance": ["architecture_review"],
+        "created_at": "2025-06-01T09:00:00+00:00",
+        "updated_at": "2025-06-01T09:00:00+00:00"
+      },
+      {
+        "id": "system_dbt",
+        "type": "System",
+        "label": "dbt",
+        "aliases": ["dbt models", "the transformation layer"],
+        "attributes": {"purpose": "data transformation", "owner": "unknown"},
+        "status": "provisional",
+        "confidence": 0.80,
+        "provenance": ["architecture_review"],
+        "created_at": "2025-06-01T09:00:00+00:00",
+        "updated_at": "2025-06-01T09:00:00+00:00"
+      },
+      {
+        "id": "system_crm_export",
+        "type": "System",
+        "label": "CRM Export",
+        "aliases": ["the CRM file", "CRM feed"],
+        "attributes": {"purpose": "source data feed", "note": "schema drift causes downstream failures"},
+        "status": "provisional",
+        "confidence": 0.72,
+        "provenance": ["incident_log_q1"],
+        "created_at": "2026-01-10T10:00:00+00:00",
+        "updated_at": "2026-01-10T10:00:00+00:00"
+      },
+      {
+        "id": "doc_confluence_runbook",
+        "type": "Document",
+        "label": "Confluence Runbook",
+        "aliases": ["the runbook"],
+        "attributes": {"location": "Confluence", "note": "outdated — does not reflect fallback branch added after CRM incidents"},
+        "status": "provisional",
+        "confidence": 0.45,
+        "provenance": ["victor_handoff_notes"],
+        "created_at": "2026-03-01T10:00:00+00:00",
+        "updated_at": "2026-03-01T10:00:00+00:00"
+      },
+      {
+        "id": "workflow_health_mart_refresh",
+        "type": "Workflow",
+        "label": "Customer Health Mart Refresh",
+        "aliases": ["health mart pipeline", "the mart refresh"],
+        "attributes": {
+          "note": "overrides split across Airflow variables and analytics repo helper script",
+          "manual_judgment_points": 2
+        },
+        "status": "provisional",
+        "confidence": 0.35,
+        "provenance": ["victor_handoff_notes"],
+        "created_at": "2026-03-01T10:00:00+00:00",
+        "updated_at": "2026-03-01T10:00:00+00:00"
+      },
+      {
+        "id": "risk_split_knowledge",
+        "type": "Risk",
+        "label": "Split Knowledge Ownership",
+        "aliases": [],
+        "attributes": {"severity": "high", "description": "No single person understands the health mart end-to-end; incidents bounce between analytics and platform teams."},
+        "status": "provisional",
+        "confidence": 0.90,
+        "provenance": ["victor_handoff_notes"],
+        "created_at": "2026-03-01T10:00:00+00:00",
+        "updated_at": "2026-03-01T10:00:00+00:00"
+      },
+      {
+        "id": "risk_overstated_sla",
+        "type": "Risk",
+        "label": "Overstated SLA",
+        "aliases": [],
+        "attributes": {"severity": "medium", "description": "Committed SLA assumes pipeline succeeds; fallback path produces incomplete data without triggering SLA breach alerts."},
+        "status": "provisional",
+        "confidence": 0.82,
+        "provenance": ["victor_handoff_notes"],
+        "created_at": "2026-03-01T10:00:00+00:00",
+        "updated_at": "2026-03-01T10:00:00+00:00"
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge_victor_works_on_platform",
+        "type": "WORKS_ON",
+        "source_id": "person_victor_hale",
+        "target_id": "project_data_platform",
+        "attributes": {},
+        "status": "confirmed",
+        "confidence": 1.0,
+        "provenance": ["project_roster"],
+        "created_at": "2025-10-01T09:00:00+00:00",
+        "updated_at": "2025-10-01T09:00:00+00:00"
+      },
+      {
+        "id": "edge_crm_feeds_health_mart",
+        "type": "DEPENDS_ON",
+        "source_id": "workflow_health_mart_refresh",
+        "target_id": "system_crm_export",
+        "attributes": {},
+        "status": "provisional",
+        "confidence": 0.78,
+        "provenance": ["incident_log_q1"],
+        "created_at": "2026-01-10T10:00:00+00:00",
+        "updated_at": "2026-01-10T10:00:00+00:00"
+      }
+    ]
+  },
+  "open_questions": [
+    {
+      "question_id": "q_data_001",
+      "text": "Where exactly does the fallback logic for the customer health mart live, and how does a new engineer find it?",
+      "rationale": "Health mart workflow confidence is 0.35; overrides are split across two locations that are not in the runbook.",
+      "target_category": "undocumented_knowledge",
+      "priority": "high"
+    },
+    {
+      "question_id": "q_data_002",
+      "text": "When the CRM file arrives with unexpected nulls, what is the decision rule for whether to block or allow the fallback to run?",
+      "rationale": "Manual judgment point flagged but no decision rule is documented; directly affects what business sees.",
+      "target_category": "workflows",
+      "priority": "high"
+    },
+    {
+      "question_id": "q_data_003",
+      "text": "How should someone validate that a green pipeline run actually produced complete data, not just a successful fallback?",
+      "rationale": "Overstated SLA risk node; green status does not confirm valid data per Victor's handoff notes.",
+      "target_category": "risks",
+      "priority": "medium"
+    }
+  ],
+  "ambiguities": [
+    {
+      "ambiguity_id": "amb_data_001",
+      "kind": "ambiguous_entity",
+      "target": "Priyanka",
+      "reason": "Two provisional Person nodes share the name 'Priyanka': one on analytics engineering (confidence 0.68) and one on the data platform team (confidence 0.48). Incident Slack thread references 'loop in Priyanka before changing business logic' without specifying which.",
+      "suggested_question": "The Slack incident thread says to loop in 'Priyanka' before changing business logic. Is that Priyanka on the analytics engineering side, or a different Priyanka on the platform team?",
+      "priority": "high",
+      "source_turn_id": "seed",
+      "resolved": false
+    }
+  ]
+}

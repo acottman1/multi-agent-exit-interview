@@ -1,0 +1,215 @@
+{
+  "_comment": "Seed state for Scenario 4 — Cybersecurity Compliance Transition (Aisha Rahman). Pre-ingested from audit charter and control inventory.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "project_soc2_compliance",
+        "type": "Project",
+        "label": "SOC 2 Compliance Program",
+        "aliases": ["SOC 2", "the compliance program", "ISO surveillance"],
+        "attributes": {"status_note": "Surveillance cycle ongoing; quarterly access review active"},
+        "status": "confirmed",
+        "confidence": 1.0,
+        "provenance": ["audit_charter"],
+        "created_at": "2025-04-01T09:00:00+00:00",
+        "updated_at": "2025-04-01T09:00:00+00:00"
+      },
+      {
+        "id": "person_aisha_rahman",
+        "type": "Person",
+        "label": "Aisha Rahman",
+        "aliases": ["Aisha"],
+        "attributes": {"employment_type": "contractor", "role": "Compliance Analyst", "departure_date": "2026-04-30"},
+        "status": "confirmed",
+        "confidence": 1.0,
+        "provenance": ["project_roster"],
+        "created_at": "2025-04-01T09:00:00+00:00",
+        "updated_at": "2025-04-01T09:00:00+00:00"
+      },
+      {
+        "id": "person_mina",
+        "type": "Person",
+        "label": "Mina",
+        "aliases": ["Mina from governance"],
+        "attributes": {"team": "security governance", "role": "Audit Coordinator", "last_name": "unknown"},
+        "status": "provisional",
+        "confidence": 0.72,
+        "provenance": ["audit_request_emails"],
+        "created_at": "2025-05-01T10:00:00+00:00",
+        "updated_at": "2025-05-01T10:00:00+00:00"
+      },
+      {
+        "id": "person_darren",
+        "type": "Person",
+        "label": "Darren",
+        "aliases": ["Darren in security ops"],
+        "attributes": {"team": "security operations", "role": "Escalation Lead", "last_name": "unknown"},
+        "status": "provisional",
+        "confidence": 0.68,
+        "provenance": ["audit_request_emails"],
+        "created_at": "2025-05-01T10:00:00+00:00",
+        "updated_at": "2025-05-01T10:00:00+00:00"
+      },
+      {
+        "id": "person_priya_it",
+        "type": "Person",
+        "label": "Priya",
+        "aliases": ["Priya in IT support"],
+        "attributes": {"team": "IT support", "last_name": "unknown"},
+        "status": "provisional",
+        "confidence": 0.55,
+        "provenance": ["endpoint_reconciliation_notes"],
+        "created_at": "2025-06-15T10:00:00+00:00",
+        "updated_at": "2025-06-15T10:00:00+00:00"
+      },
+      {
+        "id": "system_servicenow",
+        "type": "System",
+        "label": "ServiceNow",
+        "aliases": ["the ticket system"],
+        "attributes": {"purpose": "ticket evidence and remediation tracking"},
+        "status": "confirmed",
+        "confidence": 1.0,
+        "provenance": ["audit_charter"],
+        "created_at": "2025-04-01T09:00:00+00:00",
+        "updated_at": "2025-04-01T09:00:00+00:00"
+      },
+      {
+        "id": "system_drata",
+        "type": "System",
+        "label": "Drata",
+        "aliases": ["the compliance platform"],
+        "attributes": {"purpose": "control tracking and audit task generation"},
+        "status": "confirmed",
+        "confidence": 1.0,
+        "provenance": ["audit_charter"],
+        "created_at": "2025-04-01T09:00:00+00:00",
+        "updated_at": "2025-04-01T09:00:00+00:00"
+      },
+      {
+        "id": "system_jamf",
+        "type": "System",
+        "label": "Jamf",
+        "aliases": ["endpoint manager"],
+        "attributes": {"purpose": "endpoint inventory and management", "note": "exports delayed on Mondays"},
+        "status": "provisional",
+        "confidence": 0.85,
+        "provenance": ["control_inventory"],
+        "created_at": "2025-04-15T09:00:00+00:00",
+        "updated_at": "2025-04-15T09:00:00+00:00"
+      },
+      {
+        "id": "system_okta",
+        "type": "System",
+        "label": "Okta",
+        "aliases": ["identity provider", "IdP"],
+        "attributes": {"purpose": "identity and access management"},
+        "status": "provisional",
+        "confidence": 0.88,
+        "provenance": ["control_inventory"],
+        "created_at": "2025-04-15T09:00:00+00:00",
+        "updated_at": "2025-04-15T09:00:00+00:00"
+      },
+      {
+        "id": "doc_exception_tracker",
+        "type": "Document",
+        "label": "Exception Tracker Spreadsheet",
+        "aliases": ["exception tracker", "the exceptions sheet"],
+        "attributes": {"location": "outside Drata", "owner": "fuzzy — intended: security governance, actual: Aisha during last cycle"},
+        "status": "provisional",
+        "confidence": 0.60,
+        "provenance": ["aisha_audit_notes"],
+        "created_at": "2025-10-01T10:00:00+00:00",
+        "updated_at": "2025-10-01T10:00:00+00:00"
+      },
+      {
+        "id": "workflow_quarterly_access_review",
+        "type": "Workflow",
+        "label": "Quarterly Access Review",
+        "aliases": ["access review", "quarterly review"],
+        "attributes": {
+          "steps_known": ["Drata generates task", "application owners validate", "security ops follows up"],
+          "steps_unknown": ["exception follow-through", "remediation verification"]
+        },
+        "status": "provisional",
+        "confidence": 0.42,
+        "provenance": ["aisha_audit_notes"],
+        "created_at": "2025-10-01T10:00:00+00:00",
+        "updated_at": "2025-10-01T10:00:00+00:00"
+      },
+      {
+        "id": "risk_evidence_provenance",
+        "type": "Risk",
+        "label": "Evidence Provenance Inconsistency",
+        "aliases": [],
+        "attributes": {"severity": "high", "description": "Auditors care about file naming and version control. Correct evidence stored inconsistently increases rework risk."},
+        "status": "provisional",
+        "confidence": 0.85,
+        "provenance": ["aisha_audit_notes"],
+        "created_at": "2025-10-01T10:00:00+00:00",
+        "updated_at": "2025-10-01T10:00:00+00:00"
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge_aisha_works_on_soc2",
+        "type": "WORKS_ON",
+        "source_id": "person_aisha_rahman",
+        "target_id": "project_soc2_compliance",
+        "attributes": {},
+        "status": "confirmed",
+        "confidence": 1.0,
+        "provenance": ["project_roster"],
+        "created_at": "2025-04-01T09:00:00+00:00",
+        "updated_at": "2025-04-01T09:00:00+00:00"
+      },
+      {
+        "id": "edge_drata_generates_access_review",
+        "type": "TRIGGERS",
+        "source_id": "system_drata",
+        "target_id": "workflow_quarterly_access_review",
+        "attributes": {},
+        "status": "provisional",
+        "confidence": 0.88,
+        "provenance": ["audit_charter"],
+        "created_at": "2025-04-15T09:00:00+00:00",
+        "updated_at": "2025-04-15T09:00:00+00:00"
+      }
+    ]
+  },
+  "open_questions": [
+    {
+      "question_id": "q_cyber_001",
+      "text": "Can you walk through the quarterly access review end to end, from Drata task generation through evidence storage in SharePoint?",
+      "rationale": "Quarterly access review workflow has confidence 0.42; remediation verification and exception follow-through steps are unknown.",
+      "target_category": "workflows",
+      "priority": "high"
+    },
+    {
+      "question_id": "q_cyber_002",
+      "text": "How do you verify that a completed Drata task means remediation actually happened, not just that the task was closed?",
+      "rationale": "Known gap: Drata task completion does not guarantee actual remediation. Cross-check method undocumented.",
+      "target_category": "undocumented_knowledge",
+      "priority": "high"
+    },
+    {
+      "question_id": "q_cyber_003",
+      "text": "Who officially owns the exception tracker spreadsheet, and what happens to it if that person is unavailable?",
+      "rationale": "Exception tracker ownership is flagged as fuzzy; no backup owner documented.",
+      "target_category": "risks",
+      "priority": "medium"
+    }
+  ],
+  "ambiguities": [
+    {
+      "ambiguity_id": "amb_cyber_001",
+      "kind": "ambiguous_entity",
+      "target": "Priya",
+      "reason": "Two provisional Person nodes could share the name 'Priya': Priya in IT support (confidence 0.55) and an unconfirmed reference to 'Priya from governance' in older audit emails. Endpoint reconciliation notes say 'ask Priya' without clarifying team.",
+      "suggested_question": "The endpoint reconciliation notes mention checking with 'Priya' when inventories don't reconcile. Is that Priya in IT support, or someone else named Priya?",
+      "priority": "high",
+      "source_turn_id": "seed",
+      "resolved": false
+    }
+  ]
+}
