@@ -67,10 +67,16 @@ class TurnResult(BaseModel):
 async def run_turn(
     state: SharedInterviewState,
     answer_provider: AnswerProvider,
+    selected_question: OrchestratorOutput | None = None,
 ) -> TurnResult:
-    """Run one full interview turn end-to-end."""
-    # 1. Orchestrator picks next question (pure function; we record the ask below)
-    orchestrator_output = select_next_question(state)
+    """Run one full interview turn end-to-end.
+
+    If *selected_question* is provided (e.g. chosen by the user from a menu),
+    it is used directly and the orchestrator is not called. Default (None)
+    preserves existing behaviour — the orchestrator picks the question.
+    """
+    # 1. Orchestrator picks next question unless the caller pre-selected one.
+    orchestrator_output = selected_question or select_next_question(state)
     state.asked_question_ids.append(orchestrator_output.question_id)
 
     # 2. Elicit the answer — support sync or async providers
@@ -183,32 +189,27 @@ def _resolve_answered_ambiguities(
     entity_out: EntityExtractionOutput,
 ) -> None:
     """
-    If this turn was answering an ambiguity question, check whether the
-    interviewee's extracted entities resolve it.
+    After every turn, check whether any unresolved ambiguity was clarified.
 
-    Resolution heuristic: the answer named an unambiguous entity whose label
-    contains the ambiguity's target string (e.g. "Richard Jones" resolves the
-    "Richard" ambiguity). This keeps the orchestrator from re-asking.
+    Resolution heuristic: the interviewee named an unambiguous entity whose
+    label contains the ambiguity's target string (e.g. "Richard Jones" resolves
+    the "Richard" ambiguity).  We check all ambiguities — not just the one the
+    orchestrator asked about — so that user-chosen alternate questions can still
+    trigger resolution when the answer happens to name the right entity.
     """
-    if orchestrator_output.target_category != "ambiguity_resolution":
-        return
-    if not orchestrator_output.question_id.startswith("q_amb_"):
-        return
-
-    amb_id = orchestrator_output.question_id[len("q_amb_"):]
+    unambiguous = [e for e in entity_out.entities if not e.is_ambiguous]
     for amb in state.ambiguities:
-        if amb.ambiguity_id != amb_id or amb.resolved:
-            break
-        for entity in entity_out.entities:
-            if not entity.is_ambiguous and amb.target.lower() in entity.label.lower():
+        if amb.resolved:
+            continue
+        for entity in unambiguous:
+            if amb.target.lower() in entity.label.lower():
                 amb.resolved = True
                 logger.info(
                     "Ambiguity %r resolved — interviewee named %r.",
-                    amb_id,
+                    amb.ambiguity_id,
                     entity.label,
                 )
                 break
-        break
 
 
 def _append_clarifications_as_open_questions(

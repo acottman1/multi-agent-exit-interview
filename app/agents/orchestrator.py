@@ -138,46 +138,71 @@ def _select_variant(session_id: str, key: str, variants: list[str]) -> str:
     return variants[digest % len(variants)]
 
 
-# ── Public entry point ────────────────────────────────────────────────────────
+# ── Public entry points ───────────────────────────────────────────────────────
+
+def select_next_questions(
+    state: SharedInterviewState, n: int = 5
+) -> list[OrchestratorOutput]:
+    """
+    Return up to *n* candidate questions ranked by the priority ladder.
+
+    Walks all four tiers and collects every available candidate across them,
+    then returns the first *n* in priority order.  Callers can present a
+    menu and let the user choose; the default (index 0) is the same question
+    that select_next_question() would have returned.
+
+    Pure function — does NOT mutate state.
+    """
+    candidates: list[OrchestratorOutput] = []
+    candidates.extend(_ambiguity_questions(state))
+    candidates.extend(_seeded_open_questions(state))
+    candidates.extend(_probe_low_confidence_nodes(state))
+    candidates.extend(_coverage_gap_fallbacks(state))
+
+    # Deduplicate by question_id while preserving priority order.
+    seen: set[str] = set()
+    unique: list[OrchestratorOutput] = []
+    for c in candidates:
+        if c.question_id not in seen:
+            seen.add(c.question_id)
+            unique.append(c)
+
+    return unique[:n]
+
 
 def select_next_question(state: SharedInterviewState) -> OrchestratorOutput:
     """
-    Pick the most valuable next question given the current state.
+    Pick the single most valuable next question given the current state.
 
     Pure function — does NOT mutate state. The turn loop is responsible for
     appending the resulting question_id to asked_question_ids.
     """
-    if (amb_q := _ambiguity_question(state)) is not None:
-        return amb_q
-
-    if (seeded_q := _seeded_open_question(state)) is not None:
-        return seeded_q
-
-    if (probe_q := _probe_low_confidence_node(state)) is not None:
-        return probe_q
-
-    return _coverage_gap_fallback(state)
+    return select_next_questions(state, n=1)[0]
 
 
 # ── Priority 1: unresolved ambiguities ────────────────────────────────────────
 
-def _ambiguity_question(state: SharedInterviewState) -> OrchestratorOutput | None:
+def _ambiguity_questions(state: SharedInterviewState) -> list[OrchestratorOutput]:
     pending = [
         a for a in state.ambiguities
         if not a.resolved
         and _ambiguity_question_id(a.ambiguity_id) not in state.asked_question_ids
     ]
-    if not pending:
-        return None
-
     pending.sort(key=lambda a: _PRIORITY_RANK[a.priority])
-    amb = pending[0]
-    return OrchestratorOutput(
-        next_question=amb.suggested_question,
-        rationale=f"Resolving ambiguity: {amb.reason}",
-        target_category="ambiguity_resolution",
-        question_id=_ambiguity_question_id(amb.ambiguity_id),
-    )
+    return [
+        OrchestratorOutput(
+            next_question=a.suggested_question,
+            rationale=f"Resolving ambiguity: {a.reason}",
+            target_category="ambiguity_resolution",
+            question_id=_ambiguity_question_id(a.ambiguity_id),
+        )
+        for a in pending
+    ]
+
+
+def _ambiguity_question(state: SharedInterviewState) -> OrchestratorOutput | None:
+    qs = _ambiguity_questions(state)
+    return qs[0] if qs else None
 
 
 def _ambiguity_question_id(ambiguity_id: str) -> str:
@@ -187,47 +212,55 @@ def _ambiguity_question_id(ambiguity_id: str) -> str:
 
 # ── Priority 2: pending seeded open questions ─────────────────────────────────
 
-def _seeded_open_question(state: SharedInterviewState) -> OrchestratorOutput | None:
+def _seeded_open_questions(state: SharedInterviewState) -> list[OrchestratorOutput]:
     pending = [
         q for q in state.open_questions
         if q.question_id not in state.asked_question_ids
     ]
-    if not pending:
-        return None
-
     pending.sort(key=lambda q: _PRIORITY_RANK[q.priority])
-    q = pending[0]
-    return OrchestratorOutput(
-        next_question=q.text,
-        rationale=q.rationale,
-        target_category=q.target_category,
-        question_id=q.question_id,
-    )
+    return [
+        OrchestratorOutput(
+            next_question=q.text,
+            rationale=q.rationale,
+            target_category=q.target_category,
+            question_id=q.question_id,
+        )
+        for q in pending
+    ]
+
+
+def _seeded_open_question(state: SharedInterviewState) -> OrchestratorOutput | None:
+    qs = _seeded_open_questions(state)
+    return qs[0] if qs else None
 
 
 # ── Priority 3: lowest-confidence provisional node ────────────────────────────
 
-def _probe_low_confidence_node(state: SharedInterviewState) -> OrchestratorOutput | None:
+def _probe_low_confidence_nodes(state: SharedInterviewState) -> list[OrchestratorOutput]:
     candidates = [
         n for n in state.graph.nodes
         if n.status == "provisional"
         and n.confidence < CONFIRMED_THRESHOLD
         and _probe_question_id(n.id) not in state.asked_question_ids
     ]
-    if not candidates:
-        return None
-
     candidates.sort(key=lambda n: n.confidence)
-    weakest = candidates[0]
-    return OrchestratorOutput(
-        next_question=_probe_question_for_node(weakest, state.session_id),
-        rationale=(
-            f"Node {weakest.id!r} ({weakest.type}, label={weakest.label!r}) "
-            f"has confidence {weakest.confidence:.2f} — probing for more detail."
-        ),
-        target_category=_category_for_node_type(weakest.type),
-        question_id=_probe_question_id(weakest.id),
-    )
+    return [
+        OrchestratorOutput(
+            next_question=_probe_question_for_node(n, state.session_id),
+            rationale=(
+                f"Node {n.id!r} ({n.type}, label={n.label!r}) "
+                f"has confidence {n.confidence:.2f} — probing for more detail."
+            ),
+            target_category=_category_for_node_type(n.type),
+            question_id=_probe_question_id(n.id),
+        )
+        for n in candidates
+    ]
+
+
+def _probe_low_confidence_node(state: SharedInterviewState) -> OrchestratorOutput | None:
+    qs = _probe_low_confidence_nodes(state)
+    return qs[0] if qs else None
 
 
 def _probe_question_id(node_id: str) -> str:
@@ -263,7 +296,7 @@ def _category_for_node_type(node_type: NodeType) -> str:
 
 # ── Priority 4: coverage-gap fallback ─────────────────────────────────────────
 
-def _coverage_gap_fallback(state: SharedInterviewState) -> OrchestratorOutput:
+def _coverage_gap_fallbacks(state: SharedInterviewState) -> list[OrchestratorOutput]:
     cov = state.coverage
     scored: list[tuple[str, float]] = [
         ("people", cov.people),
@@ -274,12 +307,18 @@ def _coverage_gap_fallback(state: SharedInterviewState) -> OrchestratorOutput:
         ("undocumented_knowledge", cov.undocumented_knowledge),
     ]
     scored.sort(key=lambda item: item[1])
-    weakest_cat, weakest_score = scored[0]
-    return OrchestratorOutput(
-        next_question=_fallback_question(weakest_cat, state.session_id),
-        rationale=f"Coverage for {weakest_cat!r} is {weakest_score:.2f}; broadening the discussion.",
-        target_category=weakest_cat,
-    )
+    return [
+        OrchestratorOutput(
+            next_question=_fallback_question(cat, state.session_id),
+            rationale=f"Coverage for {cat!r} is {score:.2f}; broadening the discussion.",
+            target_category=cat,
+        )
+        for cat, score in scored
+    ]
+
+
+def _coverage_gap_fallback(state: SharedInterviewState) -> OrchestratorOutput:
+    return _coverage_gap_fallbacks(state)[0]
 
 
 def _fallback_question(category: str, session_id: str) -> str:

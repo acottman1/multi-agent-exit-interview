@@ -2,6 +2,8 @@
 Interactive exit interview CLI.
 
 Runs the full multi-agent pipeline turn-by-turn, reading answers from stdin.
+At each turn a numbered menu of candidate questions is shown; the user can
+pick any one or press Enter to accept the default (highest-priority) choice.
 After the session ends (user types 'done'/'exit', or max turns reached),
 saves the final state and compiles the Obsidian vault.
 
@@ -51,7 +53,8 @@ except ImportError:
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from app.core.models import Interviewee, SharedInterviewState
+from app.agents.orchestrator import select_next_questions
+from app.core.models import Interviewee, OrchestratorOutput, SharedInterviewState
 from app.graph.schema import KnowledgeGraph
 from app.ingestion.loaders import load_initial_state
 from app.interview.turn_loop import TurnResult, run_turn
@@ -111,34 +114,81 @@ def _print_turn_summary(result: TurnResult, initial_nodes: int, current_nodes: i
 
     _divider("-")
 
-# ── Answer provider ───────────────────────────────────────────────────────────
+# ── Question menu ─────────────────────────────────────────────────────────────
 
-def _make_answer_provider(stop_signal: list[bool]):
-    """Returns a sync callable that reads a line from stdin."""
-    def provider(question: str) -> str:
-        print()
-        print(_wrap(question, indent=0))
-        print()
-        try:
-            answer = input("  Your answer (or 'done' to finish): ").strip()
-        except (EOFError, KeyboardInterrupt):
-            answer = "done"
+def _show_question_menu(
+    candidates: list[OrchestratorOutput],
+) -> tuple[OrchestratorOutput | None, bool]:
+    """Display a numbered menu of candidate questions.
 
-        if answer.lower() in {"done", "exit", "quit", "q"}:
-            stop_signal[0] = True
-            return "(interview ended by user)"
-        return answer or "(no answer given)"
+    Returns (chosen, done).  done=True means the user wants to exit.
+    """
+    print()
+    print("  Available questions:")
+    for i, c in enumerate(candidates, 1):
+        default_tag = " (default)" if i == 1 else ""
+        q_short = textwrap.shorten(c.next_question, width=60, placeholder="...")
+        r_short = textwrap.shorten(c.rationale, width=58, placeholder="...")
+        print(f"  [{i}]{default_tag} {q_short}")
+        print(f"       Why: {r_short}")
+
+    print()
+    prompt = f"  Pick [1-{len(candidates)}] or Enter for default (or 'done' to finish): "
+    try:
+        raw = input(prompt).strip()
+    except (EOFError, KeyboardInterrupt):
+        return None, True
+
+    if raw.lower() in {"done", "exit", "quit", "q"}:
+        return None, True
+
+    if raw == "":
+        return candidates[0], False
+
+    try:
+        idx = int(raw)
+        if 1 <= idx <= len(candidates):
+            return candidates[idx - 1], False
+    except ValueError:
+        pass
+
+    print(f"  Invalid choice — using question [1] by default.")
+    return candidates[0], False
+
+
+def _prompt_for_answer(question: str) -> tuple[str, bool]:
+    """Display the selected question and read the interviewee's answer.
+
+    Returns (answer, done).  done=True means the user wants to exit.
+    """
+    print()
+    print(_wrap(question, indent=0))
+    print()
+    try:
+        answer = input("  Your answer (or 'done' to finish): ").strip()
+    except (EOFError, KeyboardInterrupt):
+        return "", True
+
+    if answer.lower() in {"done", "exit", "quit", "q"}:
+        return "", True
+
+    return answer or "(no answer given)", False
+
+
+def _captured_provider(answer: str):
+    """Wrap a pre-captured answer as an AnswerProvider callable."""
+    def provider(_question: str) -> str:
+        return answer
     return provider
 
 # ── Main interview loop ───────────────────────────────────────────────────────
 
 async def run(args: argparse.Namespace) -> None:
     # 1. Build interviewee
-    project_ids: list[str] = []
     interviewee = Interviewee(
         name=args.name,
         role=args.role,
-        project_ids=project_ids,
+        project_ids=[],
     )
 
     # 2. Load project context or start blank
@@ -173,27 +223,35 @@ async def run(args: argparse.Namespace) -> None:
     print(f"  Output      : {out_dir}/")
     _divider()
     print()
-    print("  Type your answers at each prompt.")
-    print("  Type 'done' at any time to end the interview early.")
+    print("  At each turn, pick a question from the menu or press Enter")
+    print("  to accept the default. Type 'done' at any prompt to finish.")
     print()
 
     # 5. Turn loop
-    stop_signal: list[bool] = [False]
-    answer_provider = _make_answer_provider(stop_signal)
     turn_count = 0
 
     for _ in range(args.max_turns):
-        if stop_signal[0]:
+        # Get ranked candidates and let the user choose
+        candidates = select_next_questions(state, n=5)
+        chosen, done = _show_question_menu(candidates)
+        if done:
             break
 
-        result = await run_turn(state, answer_provider)
+        # Get the answer for the chosen question
+        answer, done = _prompt_for_answer(chosen.next_question)
+        if done:
+            break
+
+        # Run the full agent pipeline with the pre-selected question
+        result = await run_turn(
+            state,
+            _captured_provider(answer),
+            selected_question=chosen,
+        )
         turn_count += 1
 
         if not args.quiet:
             _print_turn_summary(result, initial_nodes, len(state.graph.nodes))
-
-        if stop_signal[0]:
-            break
 
     # 6. Final summary
     print()
@@ -203,7 +261,7 @@ async def run(args: argparse.Namespace) -> None:
     print(f"  Nodes in graph  : {initial_nodes} -> {len(state.graph.nodes)} "
           f"(+{len(state.graph.nodes) - initial_nodes})")
     print("  Coverage scores:")
-    for field, score in type(state.coverage).model_fields.items():
+    for field in type(state.coverage).model_fields:
         val = getattr(state.coverage, field)
         filled = int(val * 20)
         bar = "#" * filled + "." * (20 - filled)
