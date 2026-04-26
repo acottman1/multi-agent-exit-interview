@@ -58,7 +58,7 @@ from app.core.models import Interviewee, OrchestratorOutput, SharedInterviewStat
 from app.graph.schema import KnowledgeGraph
 from app.ingestion.loaders import load_initial_state
 from app.interview.turn_loop import TurnResult, run_turn
-from app.vault.vault_compiler import compile_vault, save_final_state
+from app.vault.vault_compiler import compile_vault, load_final_state, save_final_state
 
 # ── Named project registry ────────────────────────────────────────────────────
 
@@ -181,41 +181,68 @@ def _captured_provider(answer: str):
         return answer
     return provider
 
+
+def _prompt_resume(state_path: Path) -> bool:
+    """Show a summary of the previous session and ask whether to resume it."""
+    prev = load_final_state(state_path)
+    turns_done = len(prev.turns)
+    nodes = len([n for n in prev.graph.nodes if n.status != "superseded"])
+
+    print()
+    print("  Previous session found:")
+    print(f"    Turns completed : {turns_done}")
+    print(f"    Nodes in graph  : {nodes}")
+    print("    Coverage scores:")
+    for field in type(prev.coverage).model_fields:
+        val = getattr(prev.coverage, field)
+        filled = int(val * 20)
+        bar = "#" * filled + "." * (20 - filled)
+        print(f"      {field:<26} {val:.2f}  [{bar}]")
+    print()
+
+    try:
+        raw = input("  Resume this session? [Y/n]: ").strip().lower()
+    except (EOFError, KeyboardInterrupt):
+        return False
+
+    return raw in {"", "y", "yes"}
+
 # ── Main interview loop ───────────────────────────────────────────────────────
 
 async def run(args: argparse.Namespace) -> None:
-    # 1. Build interviewee
-    interviewee = Interviewee(
-        name=args.name,
-        role=args.role,
-        project_ids=[],
-    )
-
-    # 2. Load project context or start blank
-    if args.project:
-        project_path = _PROJECTS.get(args.project.lower()) or Path(args.project)
-        if not project_path.exists():
-            print(f"ERROR: Project file not found: {project_path}", file=sys.stderr)
-            sys.exit(1)
-        state = load_initial_state(interviewee, path=project_path)
-        project_label = args.project
-    else:
-        state = SharedInterviewState(
-            interviewee=interviewee,
-            graph=KnowledgeGraph(nodes=[], edges=[]),
-        )
-        project_label = "blank (no prior context)"
-
-    initial_nodes = len(state.graph.nodes)
-
-    # 3. Output directory
+    # 1. Output directory — compute first so we can check for a previous session
     slug = re.sub(r"[^a-z0-9]+", "_", args.name.lower()).strip("_")
     out_dir = Path(args.out) if args.out else Path("runs") / slug
     out_dir.mkdir(parents=True, exist_ok=True)
+    state_path = out_dir / "final_state.json"
 
-    # 4. Header
+    # 2. Load state — resume previous session or start fresh
+    resumed = False
+    if state_path.exists() and _prompt_resume(state_path):
+        state = load_final_state(state_path)
+        project_label = f"resumed from {state_path}"
+        resumed = True
+    else:
+        interviewee = Interviewee(name=args.name, role=args.role, project_ids=[])
+        if args.project:
+            project_path = _PROJECTS.get(args.project.lower()) or Path(args.project)
+            if not project_path.exists():
+                print(f"ERROR: Project file not found: {project_path}", file=sys.stderr)
+                sys.exit(1)
+            state = load_initial_state(interviewee, path=project_path)
+            project_label = args.project
+        else:
+            state = SharedInterviewState(
+                interviewee=interviewee,
+                graph=KnowledgeGraph(nodes=[], edges=[]),
+            )
+            project_label = "blank (no prior context)"
+
+    initial_nodes = len(state.graph.nodes)
+
+    # 3. Header
     _divider()
-    print(f"  EXIT INTERVIEW")
+    print(f"  EXIT INTERVIEW {'(RESUMED)' if resumed else ''}")
     print(f"  Interviewee : {args.name}")
     print(f"  Role        : {args.role}")
     print(f"  Project     : {project_label}")
