@@ -127,10 +127,14 @@ def _show_question_menu(
     print("  Available questions:")
     for i, c in enumerate(candidates, 1):
         default_tag = " (default)" if i == 1 else ""
-        q_short = textwrap.shorten(c.next_question, width=60, placeholder="...")
-        r_short = textwrap.shorten(c.rationale, width=58, placeholder="...")
-        print(f"  [{i}]{default_tag} {q_short}")
-        print(f"       Why: {r_short}")
+        prefix = f"  [{i}]{default_tag} "
+        subsequent = " " * len(prefix)
+        q_wrapped = textwrap.fill(c.next_question, width=WIDTH,
+                                  initial_indent=prefix, subsequent_indent=subsequent)
+        r_wrapped = textwrap.fill(c.rationale, width=WIDTH,
+                                  initial_indent="       Why: ", subsequent_indent="            ")
+        print(q_wrapped)
+        print(r_wrapped)
 
     print()
     prompt = f"  Pick [1-{len(candidates)}] or Enter for default (or 'done' to finish): "
