@@ -22,6 +22,7 @@ env/
 # ── Generated interview output ────────────────────────────────────────────────
 runs/
 exit_interview_vault/
+SignalBridge/
 
 # ── Pytest / coverage ─────────────────────────────────────────────────────────
 .pytest_cache/
