@@ -1,0 +1,54 @@
+{
+  "version": "1.0",
+  "total_questions": 8,
+  "meta_interview_questions": [
+    {
+      "number": 1,
+      "question": "In your own words, what kind of conversation are you trying to systematize, and why does it matter that the knowledge from those conversations doesn't get lost?",
+      "rationale": "Opens broad and surfaces both the domain and the stakes. The 'why does it matter' framing forces the responder to articulate the failure mode up front — far more diagnostic than asking 'what's the goal'. A vague answer here signals the meta-agent needs to probe harder later.",
+      "fields_informed": ["domain_name", "display_name", "description", "coverage_categories (initial priority signal)"]
+    },
+    {
+      "number": 2,
+      "question": "Who is sitting on the other side of these interviews — what do they typically know going in, and what context do you usually already have about them before the conversation starts?",
+      "rationale": "Establishes the interviewee profile and the preload context — what the system can know about the interviewee before the first turn. The 'what do they know going in' half reveals expertise level, which shapes question phrasing depth and extractor calibration.",
+      "fields_informed": ["preload_schema", "question_bank tone calibration", "clarification_triggers priorities"]
+    },
+    {
+      "number": 3,
+      "question": "Now flip it around — who reads or uses what comes out of these interviews, and what decisions or actions do they take based on it?",
+      "rationale": "Identifies downstream consumers and use cases. Asking about decisions (not just 'who reads it') forces concreteness — abstract 'stakeholders' becomes 'the manager hiring the backfill.' This directly determines vault_template structure and mandatory category flags.",
+      "fields_informed": ["vault_templates", "extraction_targets.section_key priorities", "coverage_categories.mandatory"]
+    },
+    {
+      "number": 4,
+      "question": "What are the three or four buckets of information that absolutely have to come out of one of these conversations? Walk me through what each bucket actually contains — the kinds of things, not the categories themselves.",
+      "rationale": "Direct elicitation of coverage_categories with their description field. 'Kinds of things, not categories' forces past abstract labels to concrete content, which is what enables good question variants and extraction rules.",
+      "fields_informed": ["coverage_categories (name, display_name, description)", "extraction_targets (initial seeds)"]
+    },
+    {
+      "number": 5,
+      "question": "Imagine someone gives you a transcript that completely missed something important. What would that missing thing most likely be — and why do interviewees tend to skip over it?",
+      "rationale": "The single most diagnostic question in the bank. Surfaces implicit knowledge problems, which categories need mandatory=true and high min_score, and which clarification_triggers are needed. The 'why do they skip it' framing applies the critical-incident technique at the meta-level, surfacing the cognitive reason (feels obvious, politically uncomfortable, tribal knowledge).",
+      "fields_informed": ["coverage_categories.mandatory", "coverage_categories.min_score", "clarification_triggers", "question_bank framing style (critical-incident vs. direct)"]
+    },
+    {
+      "number": 6,
+      "question": "When you read a really good answer to one of these questions versus a thin or evasive one, what's the difference? Give me an example of each if you can.",
+      "rationale": "Calibrates the extraction quality bar. The 'give me an example' prompt uses the critical-incident technique — concrete examples reveal what 'specific,' 'complete,' or 'actionable' mean in this domain. Without this calibration, the system either over-clarifies (annoying) or accepts shallow answers (useless).",
+      "fields_informed": ["clarification_triggers.condition", "extraction quality scoring", "coverage_categories.min_score completeness heuristics"]
+    },
+    {
+      "number": 7,
+      "question": "What vocabulary or terminology is specific to your world that the system should get right — names of artifacts, role types, jargon, anything where using the wrong word would feel off to your audience?",
+      "rationale": "Captures domain vocabulary so the LLM uses correct terms in extraction labels, vault templates, and follow-up questions. Getting vocabulary wrong erodes trust with the output consumer even when the content is right.",
+      "fields_informed": ["vault_templates phrasing", "question_banks wording", "extraction_targets.item_description terminology"]
+    },
+    {
+      "number": 8,
+      "question": "How will you know an interview has gone well enough to stop? What's the signal that says 'we got what we needed' versus 'we need to keep digging'?",
+      "rationale": "Defines stopping conditions and min_score thresholds for mandatory categories. Forces the responder to commit to a measurable notion of completeness. Also surfaces edge cases that affect orchestration logic.",
+      "fields_informed": ["coverage_categories.min_score", "coverage_categories.weight", "coverage_categories.mandatory", "stopping-condition policy in the orchestrator"]
+    }
+  ]
+}

@@ -1,0 +1,221 @@
+{
+  "domain_name": "exit_interview",
+  "display_name": "Employee Exit Interview",
+  "description": "Structured handoff interview conducted with a departing employee in their final two weeks. Captures formal and informal responsibilities, key relationships, system ownership, undocumented institutional knowledge, and risks — producing a role brief for the manager, the team, and the eventual backfill hire.",
+
+  "coverage_categories": [
+    {
+      "name": "role_summary",
+      "display_name": "Role Summary",
+      "description": "The interviewee's own framing of what they actually did day-to-day, contrasted with their formal job description. Surfaces the gap between the role on paper and the role in practice.",
+      "mandatory": true,
+      "min_score": 0.7,
+      "weight": 1.0
+    },
+    {
+      "name": "responsibilities",
+      "display_name": "Responsibilities & Ownership",
+      "description": "Discrete recurring or ad-hoc responsibilities the interviewee owned, including informal ones never assigned in writing. Each item should capture criticality, frequency, and current handoff status.",
+      "mandatory": true,
+      "min_score": 0.75,
+      "weight": 1.5
+    },
+    {
+      "name": "people",
+      "display_name": "Key People & Relationships",
+      "description": "Internal and external stakeholders the interviewee worked with regularly. Captures the relational and political landscape — who is critical to the work, who is difficult, and why.",
+      "mandatory": true,
+      "min_score": 0.7,
+      "weight": 1.3
+    },
+    {
+      "name": "systems",
+      "display_name": "Systems & Tools",
+      "description": "Software, platforms, scripts, spreadsheets, and ad-hoc tooling the interviewee owned, maintained, or relied on heavily. Captures fragility, documentation status, and access dependencies.",
+      "mandatory": true,
+      "min_score": 0.7,
+      "weight": 1.2
+    },
+    {
+      "name": "implicit_knowledge",
+      "display_name": "Implicit & Undocumented Knowledge",
+      "description": "Things the interviewee knows but has never written down — workarounds, conventions, historical context, judgment calls. Often invisible until the person is gone.",
+      "mandatory": true,
+      "min_score": 0.65,
+      "weight": 1.5
+    },
+    {
+      "name": "risks",
+      "display_name": "Risks & Single Points of Failure",
+      "description": "Things the interviewee was quietly holding together, fragile relationships, technical debt they were aware of, and what would break first if no one took over their work.",
+      "mandatory": true,
+      "min_score": 0.65,
+      "weight": 1.4
+    },
+    {
+      "name": "hiring_profile",
+      "display_name": "Hiring Profile for Successor",
+      "description": "Skills, experience, and dispositions the interviewee thinks the backfill needs. Generated near the end of the interview as a synthesis, with input on red flags and interview questions.",
+      "mandatory": false,
+      "min_score": 0.6,
+      "weight": 0.8
+    }
+  ],
+
+  "question_banks": {
+    "role_summary": [
+      "If you had to describe what you actually do day-to-day to someone who's never seen your job description, how would you put it?",
+      "Where does your formal job description match what you really spent your time on, and where does it not?",
+      "Walk me through a typical week — not what's on your calendar, but what actually fills your time.",
+      "If your role were posted tomorrow exactly as it's written, what would the candidate be unprepared for on day one?"
+    ],
+    "responsibilities": [
+      "Tell me about the last thing you did this week that nobody asked you to do, but that needed doing.",
+      "What's a recurring task you own that probably isn't written down anywhere?",
+      "Walk me through the last time something you're responsible for went sideways — what did you have to do to get it back on track?",
+      "Is there anything you handle that you suspect your manager doesn't fully realize you handle?",
+      "Of everything you do, what would be the first thing to fall through the cracks if you stopped showing up tomorrow?"
+    ],
+    "people": [
+      "Who do you talk to or message most days, and what do you usually need from them?",
+      "Tell me about the last time you had to work with someone difficult to get something done — who was it, and what did you have to navigate?",
+      "Outside this company, who are the people the next person in this role absolutely has to know about?",
+      "Is there anyone whose cooperation you've earned over time that a new person would have to earn from scratch?",
+      "Who would you warn the person taking over about — not in a mean way, just so they know what they're walking into?"
+    ],
+    "systems": [
+      "What systems or tools do you log into in a given day, and which of those would the next person need their own access to?",
+      "Tell me about the last time something broke or behaved weirdly in a system you use — what did you do?",
+      "Is there a spreadsheet, script, or workaround that you maintain that other people rely on without realizing you maintain it?",
+      "Which tool you use is the most fragile — the one where you hold your breath a little when you run it?",
+      "If your laptop disappeared tomorrow, what's not backed up or documented anywhere else?"
+    ],
+    "implicit_knowledge": [
+      "What's something you know about how things work here that you've never had to explain to anyone, because everyone you work with already knew it?",
+      "Tell me about the last time you gave advice to a newer colleague — what did you find yourself explaining?",
+      "Is there a 'we don't do it that way because of what happened in 2022' kind of story you carry around?",
+      "What's a judgment call you make routinely that you'd struggle to write down as a rule?",
+      "Where in the org chart do the lines on paper not match how decisions actually get made?"
+    ],
+    "risks": [
+      "What's the thing you've been quietly worrying about that you haven't gotten around to fixing?",
+      "If you had two more weeks and could only address one risk before you leave, what would it be?",
+      "Tell me about something that almost broke recently and didn't — what kept it from breaking?",
+      "Is there a relationship, system, or process where you're effectively the only safety net?",
+      "What would you tell the next person in your role to keep an eye on for the first ninety days?"
+    ],
+    "hiring_profile": [
+      "Knowing what you know now, what kind of background or experience would you look for in the person who replaces you?",
+      "What's a skill the job description probably emphasizes that actually doesn't matter that much?",
+      "What's a skill or trait the job description probably misses that's essential to surviving in this role?",
+      "If you were interviewing your own replacement, what's one question you'd ask to separate someone who will thrive from someone who'll struggle?",
+      "What red flag in a candidate would make you want to warn the hiring manager?"
+    ]
+  },
+
+  "extraction_targets": {
+    "role_summary": {
+      "section_key": "responsibilities",
+      "item_description": "A pair of statements: a one-line description of the role as actually practiced, plus an explicit delta between the formal job description and reality.",
+      "dedup_key": "role_title",
+      "wikilink_fields": ["team_name", "manager_name"]
+    },
+    "responsibilities": {
+      "section_key": "responsibilities",
+      "item_description": "A discrete responsibility with a short title (imperative verb-noun phrase), a description of what it involves, criticality (low/medium/high/critical), frequency (daily/weekly/monthly/ad-hoc), whether it appears in the formal job description, and current handoff status.",
+      "dedup_key": "title",
+      "wikilink_fields": ["systems_involved", "people_involved", "title"]
+    },
+    "people": {
+      "section_key": "people",
+      "item_description": "A person with full canonical name (First Last), role/title, organization (internal team or external company), relationship type (collaborator/dependency/stakeholder/escalation), why they matter for continuity, and any nuance about working with them.",
+      "dedup_key": "canonical_name",
+      "wikilink_fields": ["canonical_name", "organization"]
+    },
+    "systems": {
+      "section_key": "systems",
+      "item_description": "A system or tool with full canonical name (Vendor Product format), ownership status (owned/co-owned/used), fragility rating, documentation status, who else has access, and any known gotchas.",
+      "dedup_key": "canonical_name",
+      "wikilink_fields": ["canonical_name", "owner_name"]
+    },
+    "implicit_knowledge": {
+      "section_key": "implicit_knowledge",
+      "item_description": "A discrete piece of undocumented knowledge categorized by type (historical_context/workaround/judgment_rule/social_norm/technical_detail), with an urgency flag indicating how soon the successor will need it.",
+      "dedup_key": "title",
+      "wikilink_fields": ["related_systems", "related_people"]
+    },
+    "risks": {
+      "section_key": "risks",
+      "item_description": "A specific risk with a short title, description, type (single_point_of_failure/relationship_risk/technical_debt/knowledge_gap), severity, likelihood, and recommended mitigation.",
+      "dedup_key": "title",
+      "wikilink_fields": ["related_systems", "related_people", "title"]
+    },
+    "hiring_profile": {
+      "section_key": "responsibilities",
+      "item_description": "A consolidated profile containing required skills, recommended interview questions, red flags, and a note on background fit. Generated as a synthesis at end of interview, not per-turn.",
+      "dedup_key": "role_title",
+      "wikilink_fields": ["role_title"]
+    }
+  },
+
+  "clarification_triggers": [
+    {
+      "condition": "Interviewee names a person by first name only or with an ambiguous reference (e.g. 'Sarah', 'the guy in finance', 'my counterpart at the vendor').",
+      "suggested_question_template": "When you mentioned {entity}, can you give me their full name and where they sit in the org? I want to make sure the right person ends up in the handoff.",
+      "priority": "high"
+    },
+    {
+      "condition": "Interviewee references a system, tool, or platform without specifying which instance or version (e.g. 'Salesforce', 'the database', 'our CRM').",
+      "suggested_question_template": "When you say {entity}, do you mean a specific instance or environment? I want to make sure the next person knows exactly which system to log into.",
+      "priority": "high"
+    },
+    {
+      "condition": "Interviewee describes a responsibility in passive or vague terms ('it gets handled', 'someone takes care of', 'we usually').",
+      "suggested_question_template": "When you say that {entity} 'gets handled' — who specifically does it today, and is that you?",
+      "priority": "high"
+    },
+    {
+      "condition": "Interviewee mentions a risk, fragile system, or single point of failure without saying what would actually break or who would feel it.",
+      "suggested_question_template": "If {entity} did break, what would actually go wrong, and who would notice first?",
+      "priority": "high"
+    },
+    {
+      "condition": "Interviewee discusses a person in evaluative or interpersonal terms without saying what to actually do about it.",
+      "suggested_question_template": "What's the practical advice you'd give the next person about working with {entity}?",
+      "priority": "medium"
+    },
+    {
+      "condition": "Interviewee mentions a workaround or non-obvious behavior without saying why the official path doesn't work.",
+      "suggested_question_template": "Why doesn't the standard approach work for {entity} — is there a history there the next person should know?",
+      "priority": "medium"
+    },
+    {
+      "condition": "Interviewee uses 'we' or 'the team' for a responsibility but hasn't clarified whether anyone besides them is currently doing it.",
+      "suggested_question_template": "When you say 'we' handle {entity}, is anyone else actually doing this with you today, or has it become just you?",
+      "priority": "medium"
+    },
+    {
+      "condition": "Interviewee names a project, initiative, or recurring meeting without clarifying its current status (active/paused/wrapping up).",
+      "suggested_question_template": "Where does {entity} stand right now — is it ongoing, winding down, or on hold?",
+      "priority": "low"
+    }
+  ],
+
+  "vault_templates": {
+    "brief_header": "# Role Brief: [[{{role_title}}]]\n\n**Departing employee:** [[{{employee_name}}]]\n**Team:** [[{{team_name}}]]\n**Manager:** [[{{manager_name}}]]\n**Last day:** {{last_day}}\n**Interview completeness:** {{completeness_score}}\n**Open questions:** {{open_questions_count}}\n\n---\n\n## Role at a glance\n\n{{one_liner}}\n\n**Formal vs. actual:** {{formal_vs_actual}}\n",
+
+    "responsibility_item": "### {{title}}\n\n- **Criticality:** {{criticality}}\n- **Frequency:** {{frequency}}\n- **In formal job description:** {{in_job_description}}\n- **Current handoff status:** {{handoff_status}}\n- **Systems involved:** {{#systems_involved}}[[{{.}}]] {{/systems_involved}}\n- **People involved:** {{#people_involved}}[[{{.}}]] {{/people_involved}}\n\n{{description}}\n",
+
+    "person_item": "### [[{{canonical_name}}]]\n\n- **Role:** {{role_title}}\n- **Organization:** [[{{organization}}]]\n- **Relationship type:** {{relationship_type}}\n- **Why they matter:** {{continuity_reason}}\n\n{{nuance_notes}}\n",
+
+    "system_item": "### [[{{canonical_name}}]]\n\n- **Ownership:** {{ownership_status}}\n- **Owner:** [[{{owner_name}}]]\n- **Fragility:** {{fragility}}\n- **Documentation:** {{documentation_status}}\n- **Other people with access:** {{#access_holders}}[[{{.}}]] {{/access_holders}}\n\n{{gotchas}}\n",
+
+    "implicit_knowledge_item": "### {{title}}\n\n- **Type:** {{knowledge_type}}\n- **Urgency for successor:** {{urgency}}\n- **Related systems:** {{#related_systems}}[[{{.}}]] {{/related_systems}}\n- **Related people:** {{#related_people}}[[{{.}}]] {{/related_people}}\n\n{{description}}\n",
+
+    "risk_item": "### {{title}}\n\n- **Type:** {{risk_type}}\n- **Severity:** {{severity}}\n- **Likelihood:** {{likelihood}}\n- **Related systems:** {{#related_systems}}[[{{.}}]] {{/related_systems}}\n- **Related people:** {{#related_people}}[[{{.}}]] {{/related_people}}\n\n**What's at risk:** {{description}}\n\n**Recommended mitigation:** {{mitigation}}\n",
+
+    "hiring_profile_item": "## Hiring Profile for Successor: [[{{role_title}}]]\n\n### Required skills\n{{#required_skills}}- {{.}}\n{{/required_skills}}\n\n### Recommended interview questions\n{{#interview_questions}}- {{.}}\n{{/interview_questions}}\n\n### Red flags\n{{#red_flags}}- {{.}}\n{{/red_flags}}\n\n### Background fit\n{{background_note}}\n",
+
+    "open_questions_section": "## Open questions and unresolved ambiguities\n\n{{#open_questions}}- {{question}} *(category: {{category}}, priority: {{priority}})*\n{{/open_questions}}\n"
+  }
+}

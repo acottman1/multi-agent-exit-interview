@@ -1,0 +1,229 @@
+{
+  "domain_name": "marketing_campaign_discovery",
+  "display_name": "Marketing Campaign Design Discovery Interview",
+  "description": "Captures early-stage conversations between project leads, stakeholders, and execution teams to document campaign intent, audience context, messaging strategy, and handoff requirements. Preserves underlying reasoning and assumptions that shape campaign strategy and execution for better cross-team alignment and project continuity.",
+  "coverage_categories": [
+    {
+      "name": "campaign_intent",
+      "display_name": "Campaign Intent and Goals",
+      "description": "The real goal and problem the campaign is solving, including the change the stakeholder wants to see, what success looks like, hidden priorities (awareness vs. behavior change vs. fundraising vs. advocacy), why the work matters now, and what the team should ultimately accomplish.",
+      "mandatory": true,
+      "min_score": 0.75,
+      "weight": 1.5
+    },
+    {
+      "name": "audience_and_context",
+      "display_name": "Audience and Contextual Knowledge",
+      "description": "Who the campaign is targeting, what they already believe or understand, what motivates them, what barriers prevent action, what language feels natural to them, and prior experience with this audience: what has worked, what has failed, what assumptions may be at play, and where the audience is sensitive.",
+      "mandatory": true,
+      "min_score": 0.75,
+      "weight": 1.5
+    },
+    {
+      "name": "messaging_and_constraints",
+      "display_name": "Messaging, Tone, and Decision Boundaries",
+      "description": "What must be communicated, what should be avoided, appropriate tone and framing, which claims need evidence, brand and legal limits, political and organizational sensitivities, approval paths, areas of disagreement or flexibility, and what is non-negotiable versus open to interpretation.",
+      "mandatory": true,
+      "min_score": 0.7,
+      "weight": 1.3
+    },
+    {
+      "name": "execution_and_handoff",
+      "display_name": "Execution, Deliverables, and Next Steps",
+      "description": "Concrete information needed to move from conversation to work: key deliverables, channels, timeline, dependencies, available assets, missing inputs, success measures, open questions, and unresolved decisions that require follow-up before work proceeds.",
+      "mandatory": true,
+      "min_score": 0.7,
+      "weight": 1.3
+    },
+    {
+      "name": "implicit_reasoning",
+      "display_name": "Implicit Reasoning and Assumptions",
+      "description": "The deeper context behind requests that interviewees often omit: past failures or successes that shaped current thinking, organizational politics, long-term history with the audience or problem, tradeoffs being weighed, assumptions about what is obvious or already known, and uncertainty or disagreement within the team that may not be stated directly.",
+      "mandatory": true,
+      "min_score": 0.65,
+      "weight": 1.2
+    },
+    {
+      "name": "audience_barriers_and_motivations",
+      "display_name": "Audience Barriers, Motivations, and Prior Knowledge",
+      "description": "Specific obstacles that prevent the target audience from taking the desired action, intrinsic or extrinsic motivators that influence their behavior, what they currently believe or misunderstand, and evidence or past campaigns that illustrate these patterns.",
+      "mandatory": false,
+      "min_score": 0.6,
+      "weight": 1.2
+    },
+    {
+      "name": "success_and_outcomes",
+      "display_name": "Success Measures and Desired Outcomes",
+      "description": "Concrete, measurable indicators of campaign success tied to specific behaviors or outcomes (not vanity metrics), what completion or progress looks like, how success differs from awareness or engagement, and how the team will know the campaign achieved its goal.",
+      "mandatory": false,
+      "min_score": 0.6,
+      "weight": 1.0
+    }
+  ],
+  "question_banks": {
+    "campaign_intent": [
+      "What is the real problem or change you want this campaign to drive? Not the official request, but what you actually want to see happen.",
+      "Tell me about a time someone asked you to run a campaign and you thought, 'I understand what they want, but here's what they really need.' What was that underlying need?",
+      "If this campaign succeeds in a way that matters, what will be different six months or a year from now?",
+      "What would happen if we did not do this campaign at all? Why does it matter right now?",
+      "Walk me through the difference between what people asked for and what you think they actually need. Where is there a mismatch?"
+    ],
+    "audience_and_context": [
+      "Who are we really trying to reach with this campaign? Be specific—not 'families,' but what kind of families, what's their situation, what are they dealing with?",
+      "What do you know about this audience from working with them before? What has worked, what has fallen flat, what are they sensitive to?",
+      "Tell me about a time this audience surprised you—either by responding to something you did not expect, or by ignoring something you thought would work.",
+      "What does this audience already believe about the topic? What gaps are there between what they think and what you need them to understand?",
+      "What language or framing feels natural to this audience? What would feel off or disconnected?"
+    ],
+    "messaging_and_constraints": [
+      "What absolutely has to be in this campaign? What is the non-negotiable core message?",
+      "What should we be careful not to say or emphasize, and why? Are there landmines we need to avoid?",
+      "Walk me through the approval process for this campaign. Who needs to sign off, and where might there be disagreement or friction?",
+      "What brand, legal, political, or organizational limits do we need to respect? How do those shape what we can do?",
+      "What tone or style is appropriate for this work? What would feel wrong?"
+    ],
+    "execution_and_handoff": [
+      "What does the team actually need to produce to call this done? Name the deliverables or assets.",
+      "When does this need to be done, and what has to happen before work can start? What are the dependencies?",
+      "What materials, data, or information do we already have that the team should use? What are we missing?",
+      "How will you know this campaign worked? What are you measuring, and what number or outcome matters?",
+      "What questions are still open or unresolved that might block the team from moving forward?"
+    ],
+    "implicit_reasoning": [
+      "Help me understand the history here. Why have you been thinking about this problem, and what have you already tried?",
+      "What past attempts or failures shaped how you are thinking about this now?",
+      "Are there different views on the team about what this campaign should be or do? Tell me about the tension or disagreement.",
+      "What are you most worried could go wrong, and why? What is keeping you up at night about this work?",
+      "Is there context about the organization, the client, or the audience that someone from outside would not know but should? What am I missing?"
+    ],
+    "audience_barriers_and_motivations": [
+      "What is holding this audience back from doing what you want them to do? What is the biggest barrier—real or perceived?",
+      "What would make someone in this audience take action? What actually motivates them—money, trust, simplicity, social proof, something else?",
+      "Tell me about someone from this audience who did what you want others to do. What was different about them? What made them take the step?",
+      "If this audience is not responding to past campaigns, what do you think the real reason is? Is it the message, the channel, the timing, or something deeper?",
+      "What assumptions do you think this audience might have that are getting in the way? How confident are you about those assumptions?"
+    ],
+    "success_and_outcomes": [
+      "What does success actually look like for this campaign? Not 'increase engagement,' but what is the specific behavior or outcome you are hoping for?",
+      "How will the team know if this campaign worked? What will you measure, and what number or change would make you say, 'Yes, this was worth it'?",
+      "What is the difference between awareness and the outcome you actually care about? Why is that distinction important?",
+      "If you had to pick one thing that would prove this campaign succeeded, what would it be?",
+      "What is the first action you want this audience to take? Where is the finish line, or at least the next milestone?"
+    ]
+  },
+  "extraction_targets": {
+    "campaign_intent": {
+      "section_key": "implicit_knowledge",
+      "item_description": "A summary of the campaign's core purpose, including the problem it solves, the change it seeks, why it matters now, and what success looks like. May include implicit priorities (awareness vs. behavior change vs. fundraising vs. advocacy) and hidden goals that shape strategy.",
+      "dedup_key": "campaign_title",
+      "wikilink_fields": [
+        "stakeholder_name",
+        "decision_maker",
+        "client_name"
+      ]
+    },
+    "audience_and_context": {
+      "section_key": "implicit_knowledge",
+      "item_description": "A description of the target audience segment, including their characteristics, prior knowledge, motivations, barriers, language preferences, and relevant historical context (what has worked, what has failed, sensitivities). Grounded in specific examples or evidence from prior campaigns.",
+      "dedup_key": "audience_segment",
+      "wikilink_fields": [
+        "audience_name"
+      ]
+    },
+    "messaging_and_constraints": {
+      "section_key": "responsibilities",
+      "item_description": "A messaging principle, constraint, or decision boundary the campaign must respect. Includes what must be said, what should be avoided, appropriate tone, brand/legal/political limits, approval authority, and whether it is negotiable or non-negotiable. Tied to a specific reason or stakeholder concern.",
+      "dedup_key": "constraint_title",
+      "wikilink_fields": [
+        "approver_name",
+        "stakeholder_name"
+      ]
+    },
+    "execution_and_handoff": {
+      "section_key": "responsibilities",
+      "item_description": "A concrete requirement for campaign execution and delivery: deliverable type and name, channel, timeline, dependency, available asset, missing input, success metric, open question, or next step. Specific enough to guide work or identify what must be resolved before work proceeds.",
+      "dedup_key": "item_title",
+      "wikilink_fields": [
+        "responsible_team",
+        "responsible_person",
+        "deliverable_name"
+      ]
+    },
+    "implicit_reasoning": {
+      "section_key": "implicit_knowledge",
+      "item_description": "Context that explains why a stakeholder made a request or holds a particular view: past failures, organizational history, political concerns, team disagreement, or assumptions that shaped thinking. Helps the execution team understand the 'why' behind decisions and avoid repeating past mistakes.",
+      "dedup_key": "reasoning_title",
+      "wikilink_fields": [
+        "stakeholder_name",
+        "affected_party"
+      ]
+    },
+    "audience_barriers_and_motivations": {
+      "section_key": "implicit_knowledge",
+      "item_description": "A specific barrier that prevents the target audience from taking desired action, or a motivator that could move them to action. Grounded in prior experience, observations, or evidence. May include what is assumed versus what is actually known.",
+      "dedup_key": "barrier_or_motivator_title",
+      "wikilink_fields": [
+        "audience_segment"
+      ]
+    },
+    "success_and_outcomes": {
+      "section_key": "responsibilities",
+      "item_description": "A concrete, measurable outcome or behavior that defines campaign success. Tied to a specific action (not vanity metrics), includes the metric or indicator that will be tracked, and explains why this outcome matters more than awareness or engagement metrics.",
+      "dedup_key": "outcome_title",
+      "wikilink_fields": []
+    }
+  },
+  "clarification_triggers": [
+    {
+      "condition": "Interviewee uses vague terms like 'awareness,' 'engagement,' 'positive,' or 'good' without defining what they mean in practical terms",
+      "suggested_question_template": "When you say {entity}, what specifically should the campaign make happen? What is the concrete action or change?",
+      "priority": "high"
+    },
+    {
+      "condition": "Interviewee names a stakeholder, decision-maker, or approver only by first name or without clear identification of their role and decision authority",
+      "suggested_question_template": "Just to make sure I have this right—who is {entity}, and what is their role in decisions about this campaign?",
+      "priority": "high"
+    },
+    {
+      "condition": "Interviewee describes a constraint, risk, or boundary but does not explain why it matters or what happens if it is violated",
+      "suggested_question_template": "Help me understand why {entity} matters so much. What is at stake if we do not respect that?",
+      "priority": "high"
+    },
+    {
+      "condition": "Interviewee mentions disagreement, uncertainty, or different viewpoints without specifying what the disagreement is or who holds each view",
+      "suggested_question_template": "You mentioned there is some disagreement about {entity}. What are the different views, and who thinks what?",
+      "priority": "medium"
+    },
+    {
+      "condition": "Interviewee offers a solution or recommendation without explaining the problem or need behind it",
+      "suggested_question_template": "I hear you want to {entity}. Help me understand the problem you are trying to solve with that approach.",
+      "priority": "medium"
+    },
+    {
+      "condition": "Interviewee describes a past campaign or attempt but does not explain what happened or what was learned from it",
+      "suggested_question_template": "Tell me more about what happened with {entity}. What did you learn from that experience?",
+      "priority": "medium"
+    },
+    {
+      "condition": "Interviewee names a broad audience group ('families,' 'stakeholders,' 'people') without specifying who within that group or what makes them different",
+      "suggested_question_template": "When you say {entity}, who specifically are you trying to reach? What is their situation or what are they dealing with?",
+      "priority": "high"
+    },
+    {
+      "condition": "Interviewee describes success in metrics (impressions, clicks, opens) that do not connect to a real-world behavior or outcome",
+      "suggested_question_template": "How does {entity} connect to what you actually want this audience to do? What is the behavior or change that matters?",
+      "priority": "medium"
+    }
+  ],
+  "vault_templates": {
+    "brief_header": "# {{campaign_title}}\n\n**Interview Date:** {{interview_date}}\n**Key Stakeholders:** {{#stakeholders}}[[{{canonical_name}}]]{{#unless @last}}, {{/unless}}{{/stakeholders}}\n**Target Audience:** {{primary_audience}}\n\n---\n",
+    "campaign_intent_section": "## Campaign Intent and Goals\n\n**Real Problem:** {{problem_statement}}\n\n**Desired Change:** {{desired_change}}\n\n**Why It Matters Now:** {{urgency_and_context}}\n\n**Success Definition:** {{success_definition}}\n\n**Hidden Priorities:** {{#hidden_priorities}}- {{.}}\n{{/hidden_priorities}}\n\n**Key Stakeholder:** [[{{stakeholder_name}}]]\n",
+    "audience_and_context_section": "## Audience and Contextual Knowledge\n\n**Audience Segment:** {{audience_segment}}\n\n**Current Beliefs/Understanding:** {{current_beliefs}}\n\n**What Motivates Them:** {{motivations}}\n\n**Prior Experience with This Audience:**\n{{#prior_experience}}- {{what_worked}}\n- {{what_failed}}\n- {{sensitivities}}\n{{/prior_experience}}\n\n**Assumptions We Are Making:** {{#assumptions}}{{.}}{{/assumptions}}\n",
+    "messaging_and_constraints_section": "## Messaging, Tone, and Decision Boundaries\n\n**Must-Have Messages:** {{#core_messages}}- {{.}}\n{{/core_messages}}\n\n**What to Avoid:** {{#avoid_topics}}- {{.}}\n{{/avoid_topics}}\n\n**Appropriate Tone:** {{tone_and_style}}\n\n**Approval Path:** {{#approvers}}[[{{canonical_name}}]] - {{role}}{{#unless @last}}\n{{/unless}}{{/approvers}}\n\n**Key Constraints and Limits:**\n{{#constraints}}- {{constraint_type}}: {{description}} ({{rationale}})\n{{/constraints}}\n\n**Areas of Flexibility vs. Non-Negotiable:**\n{{#negotiable}}- {{item}}: Flexible\n{{/negotiable}}\n{{#non_negotiable}}- {{item}}: Non-negotiable\n{{/non_negotiable}}\n",
+    "execution_and_handoff_section": "## Execution, Deliverables, and Next Steps\n\n**Key Deliverables:**\n{{#deliverables}}- {{deliverable_name}} ({{deliverable_type}}) - Due {{due_date}}\n{{/deliverables}}\n\n**Channels:** {{#channels}}- {{channel_name}}{{#unless @last}}\n{{/unless}}{{/channels}}\n\n**Timeline:** {{launch_date}} (Launch) | {{#milestones}}\n- {{milestone_name}}: {{date}}\n{{/milestones}}\n\n**Dependencies:** {{#dependencies}}- {{dependency}} (owned by [[{{owner}}]])\n{{/dependencies}}\n\n**Available Assets:** {{#available_assets}}- {{asset_name}}\n{{/available_assets}}\n\n**Missing Inputs / Information Needed:** {{#missing_inputs}}- {{input}}\n{{/missing_inputs}}\n\n**Success Measures:** {{#success_metrics}}- {{metric_name}}: {{target_value}} by {{date}}\n{{/success_metrics}}\n\n**Open Questions and Decisions:**\n{{#open_questions}}- {{question}}\n{{/open_questions}}\n",
+    "implicit_reasoning_section": "## Implicit Reasoning and Assumptions\n\n**Historical Context:**\n{{#history}}- {{event}}\n{{/history}}\n\n**Past Failures or Learnings:**\n{{#past_attempts}}- {{what_was_tried}}: {{what_we_learned}}\n{{/past_attempts}}\n\n**Organizational or Political Context:** {{political_context}}\n\n**Team Disagreements or Tensions:**\n{{#disagreements}}- {{issue}}: {{perspective_a}} vs {{perspective_b}}\n{{/disagreements}}\n\n**Assumptions We Are Making:**\n{{#assumptions}}- {{assumption}} (Confidence: {{confidence_level}})\n{{/assumptions}}\n\n**What Could Go Wrong:** {{risks_and_concerns}}\n",
+    "audience_barriers_and_motivations_section": "## Audience Barriers and Motivations\n\n**Primary Barrier to Action:** {{primary_barrier}}\n\n**Why It Is a Barrier:** {{barrier_explanation}}\n\n**Secondary Barriers:**\n{{#secondary_barriers}}- {{barrier}}\n{{/secondary_barriers}}\n\n**What Actually Motivates This Audience:**\n{{#motivators}}- {{motivator_type}}: {{description}}\n{{/motivators}}\n\n**Evidence or Examples:**\n{{#evidence}}- {{example}}\n{{/evidence}}\n\n**Assumptions vs. Known Facts:**\n{{#assumptions_vs_facts}}- {{assumption_or_fact}}\n{{/assumptions_vs_facts}}\n",
+    "success_and_outcomes_section": "## Success Measures and Desired Outcomes\n\n**Primary Outcome:** {{primary_outcome}}\n\n**Specific Action or Behavior:** {{target_behavior}}\n\n**How We Measure It:** {{measurement_method}}\n\n**Target or Threshold:** {{target_metric}} by {{target_date}}\n\n**Why This Outcome Matters:** {{outcome_importance}}\n\n**Why This Is Different from Awareness or Engagement:** {{distinction_from_vanity_metrics}}\n\n**Secondary Outcomes:**\n{{#secondary_outcomes}}- {{outcome}}: {{measurement}}\n{{/secondary_outcomes}}\n",
+    "open_questions_section": "## Open Questions and Unresolved Decisions\n\n{{#open_questions}}- {{question}} (Owner: [[{{owner}}]])\n{{/open_questions}}\n\n---\n\n**Next Steps:** {{next_steps}}\n\n**Follow-up Conversation Needed:** {{follow_up_needed}}\n"
+  }
+}

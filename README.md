@@ -1,110 +1,83 @@
-# Exit Interview → Knowledge Graph
+# Exit Interview Knowledge Elicitation Tool
 
-A research prototype that conducts structured exit interviews with departing contractors using a multi-agent LLM panel, then builds a queryable knowledge graph from the results.
+Conducts structured exit interviews using a multi-agent LLM panel and produces a **Role Brief** — a single, readable document capturing what a departing employee owned, who they worked with, what systems they ran, what they knew that isn't written down, and what will break when they leave.
 
-**Course:** BIT 5544 · VT Spring 2026  
-**Status:** Phases 1–6 complete. Phase 7 (output / Obsidian vault) and live UI not yet built.
+**Course:** BIT 5544 · VT Spring 2026
+
+---
+
+## Documentation Index
+
+| Question | Document |
+|---|---|
+| How do I run an interview? | [Quickstart](#quickstart) and [Running an Interview](#running-an-interview) below |
+| What are all the CLI flags? | [Command Reference](#command-reference) below |
+| How does the system work? | [How It Works](#how-it-works) below |
+| What files does the tool produce? | [Output Reference](#output-reference) below |
+| How does a turn work step by step? | [How a Turn Works](#how-a-turn-works) below |
+| Something went wrong — help | [Troubleshooting](#troubleshooting) below |
+| Graph engine (v1.0 comparison mode) | [docs/graph_engine.md](docs/graph_engine.md) |
+| Why did the project pivot from graph to brief? | [docs/project_narrative.md](docs/project_narrative.md) |
+| Known bugs and limitations | [docs/dev_notes.md](docs/dev_notes.md) |
+| Full technical specification | [knowledge_graph_exit_interview_project_spec.md](knowledge_graph_exit_interview_project_spec.md) |
+| Codebase map for developers | [CLAUDE.md](CLAUDE.md) |
 
 ---
 
 ## The Problem
 
-When a contractor or key employee leaves a project, critical knowledge leaves with them — undocumented workflows, system ownership, relationship context, informal approval chains. Structured exit interviews capture some of this, but the output is usually a transcript that nobody reads.
+When a contractor or key employee leaves a project, critical knowledge leaves with them — undocumented workflows, system ownership, relationship context, informal approval chains. Exit interviews capture some of this, but the output is usually a transcript that nobody reads.
 
-This prototype turns that transcript into a **living knowledge graph** that can be queried, visualized, and handed to the next person.
+This tool turns that conversation into a structured **Role Brief** a manager can immediately act on: a handoff document, a backfill job description, a 30/60/90-day watchlist for the successor.
 
 ---
 
 ## How It Works
 
-```
-                  ┌─────────────────────────────────────────┐
-                  │           SharedInterviewState           │
-                  │  graph · turns · coverage · ambiguities  │
-                  └────────────────┬────────────────────────┘
-                                   │
-                    ┌──────────────▼──────────────┐
-                    │        Orchestrator          │
-                    │  (rule-based priority ladder)│
-                    │  1. Resolve ambiguities      │
-                    │  2. Ask seeded questions     │
-                    │  3. Probe low-conf nodes     │
-                    │  4. Fill coverage gaps       │
-                    └──────────────┬──────────────┘
-                                   │  next question
-                    ┌──────────────▼──────────────┐
-                    │       Answer Provider        │
-                    │  (human · scripted · future  │
-                    │   WebSocket / FastAPI)        │
-                    └──────────────┬──────────────┘
-                                   │  answer text
-          ┌────────────────────────▼────────────────────────┐
-          │           Five Agents  (asyncio.gather)          │
-          │                                                  │
-          │  Entity Extractor    →  who / what was mentioned │
-          │  Relationship Extractor  →  edges between them   │
-          │  Attribute Extractor  →  facts about entities    │
-          │  Clarification Detector  →  follow-up questions  │
-          │  Coverage Updater     →  scores per category     │
-          └────────────────────────┬────────────────────────┘
-                                   │  structured Pydantic outputs
-                    ┌──────────────▼──────────────┐
-                    │         Graph Mapper         │
-                    │  (Python, no LLM)            │
-                    │  temp_ids → stable node IDs  │
-                    │  skip ambiguous entities     │
-                    └──────────────┬──────────────┘
-                                   │  NodeUpdateOp / EdgeUpdateOp
-                    ┌──────────────▼──────────────┐
-                    │      Graph Updater           │
-                    │  ONLY module that writes     │
-                    │  to the canonical graph      │
-                    │  provisional → confirmed     │
-                    └─────────────────────────────┘
-```
-
-Each turn is one question → one answer → five parallel LLM analyses → graph commit. The loop runs until `max_turns` is reached or a `should_stop` condition fires.
-
----
-
-## Project Structure
+Each interview turn is one question → one answer → six parallel LLM extractions → state commit. The loop runs until `max_turns` is reached or you type `done`.
 
 ```
-app/
-  agents/
-    llm_client.py           # Shared instructor-wrapped Anthropic client
-    orchestrator.py         # Rule-based question selector (no LLM)
-    entity_extractor.py     # LLM agent: extract named entities
-    relationship_extractor.py  # LLM agent: extract relationships
-    attribute_extractor.py  # LLM agent: extract factual attributes
-    clarification_detector.py  # LLM agent: flag gaps & ambiguities
-    coverage_updater.py     # LLM agent: score knowledge coverage
-    graph_mapper.py         # Python: translate extractions → graph ops
-    stubs.py                # Fast no-LLM stubs (used in CI tests)
-    prompts/                # Versioned system prompts (.md files)
-  core/
-    models.py               # All Pydantic models: state, agent I/O
-  graph/
-    schema.py               # GraphNode, GraphEdge, KnowledgeGraph
-    updater.py              # The only module allowed to mutate the graph
-  ingestion/
-    loaders.py              # Loads initial_state.json into SharedInterviewState
-    dummy_data/
-      initial_state.json    # Seeded Project Falcon scenario
-  interview/
-    turn_loop.py            # run_turn() and run_interview() entry points
-
-tests/
-  unit/                     # Pure logic, no I/O (models, loader, updater, orchestrator)
-  contracts/                # Agent output schema validation (mocked LLM)
-  integration/              # Full pipeline with stub agents (no API key needed)
-  golden/                   # Live LLM evaluation — requires ANTHROPIC_API_KEY
-  fixtures/
-    golden_interviews/      # Scripted transcripts + expected graph assertions
-
-eval/
-  run_golden_eval.py        # Standalone evaluation script with human-readable report
+              ┌────────────────────────────────┐
+              │         BriefSessionState        │
+              │  brief · turns · coverage · cfg  │
+              └──────────────┬─────────────────┘
+                             │
+               ┌─────────────▼─────────────┐
+               │      Brief Orchestrator     │
+               │  priority ladder:           │
+               │  1. Resolve ambiguities     │
+               │  2. Pre-seeded questions    │
+               │  3. Mandatory coverage gaps │
+               │  4. General coverage gaps   │
+               └─────────────┬─────────────┘
+                             │  next question
+               ┌─────────────▼─────────────┐
+               │         You type           │
+               │      the answer            │
+               └─────────────┬─────────────┘
+                             │  answer text
+      ┌──────────────────────▼──────────────────────┐
+      │           Six Agents  (run in parallel)       │
+      │                                              │
+      │  Responsibility Extractor  →  what they own  │
+      │  People Extractor          →  collaborators  │
+      │  Systems Extractor         →  tools & infra  │
+      │  Implicit Knowledge Extractor  →  undocu-    │
+      │                                  mented know │
+      │  Risk Extractor            →  single points  │
+      │                               of failure     │
+      │  Clarification Detector    →  follow-up q's  │
+      └──────────────────────┬──────────────────────┘
+                             │  typed structured outputs
+               ┌─────────────▼─────────────┐
+               │        Brief Updater        │
+               │  deduplicates and merges    │
+               │  extracted items into the   │
+               │  Role Brief sections        │
+               └─────────────────────────────┘
 ```
+
+The Role Brief accumulates across turns. When all mandatory coverage categories reach their minimum thresholds, the tool signals completion and writes the output to disk.
 
 ---
 
@@ -118,200 +91,353 @@ pip install -e ".[dev]"
 
 ### 2. Set your API key
 
-Copy `.env` (already in the repo root) and paste your key:
+Copy `.env.example` to `.env` in the project root and add your key:
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-The app loads this automatically. The `.env` file is gitignored — it will never be committed.
+The app loads this automatically on startup. `.env` is gitignored.
 
-### 3. Run the test suite (no API key needed)
-
-```bash
-pytest                        # 159 tests, ~2.7s
-pytest -m unit                # pure logic only
-pytest -m integration         # full pipeline with stub agents
-pytest -m contract            # agent schema validation
-```
-
-### 4. Run the live evaluation (API key required)
+### 3. Verify the install (no API key needed)
 
 ```bash
-python -m eval.run_golden_eval
+pytest -m "unit or integration"   # ~80 tests, no LLM calls, ~2s
 ```
 
-This runs two scripted interviews through the real LLM agents and prints a turn-by-turn extraction report plus pass/fail assertions against expected graph outcomes.
+### 4. Run your first interview
+
+```bash
+python run_interview.py --engine brief --name "Jordan Kim" --role "Senior Data Engineer"
+```
+
+The tool shows a config picker. Select `exit_interview` (the built-in option) and follow the prompts.
 
 ---
 
-## The Knowledge Graph
+## Running an Interview
 
-### Node types
-`Person · Role · Team · Project · Client · System · Document · Workflow · Task · Decision · Risk · Issue`
+### Scenario 1: Standard Exit Interview
 
-### Relationship types
-`WORKS_ON · REPORTS_TO · COMMUNICATES_WITH · OWNS · SUPPORTS · USES · DEPENDS_ON · APPROVES · DOCUMENTS · ESCALATES_TO · BLOCKED_BY · AFFECTS · RELATED_TO`
+**Situation:** A data engineer named Jordan Kim is leaving. You want to capture what they know and produce a Role Brief for the handoff.
 
-### Node lifecycle
-```
-provisional  →  confirmed   (confidence ≥ 0.80, via updater only)
-confirmed    →  superseded  (on contradiction; history preserved)
+#### Start the session
+
+```bash
+python run_interview.py --engine brief --name "Jordan Kim" --role "Senior Data Engineer" --config exit_interview
 ```
 
-Nodes below confidence 0.50 are rejected outright. Everything between 0.50 and 0.80 stays provisional until corroborated.
+The tool prints a header confirming the session:
 
-### Coverage categories
-The system tracks how thoroughly six knowledge areas have been covered:
-`people · stakeholders · systems · workflows · risks · undocumented_knowledge`
+```
+======================================================================
+  INTERVIEW — BRIEF ENGINE
+  Interviewee : Jordan Kim
+  Role        : Senior Data Engineer
+  Config      : Employee Exit Interview
+  Max turns   : 12
+  Output      : runs/brief_jordan_kim/
+======================================================================
+
+  At each turn, pick a question from the menu or press Enter
+  to accept the default. Type 'done' at any prompt to finish.
+```
+
+#### Work through the question menu
+
+Each turn opens with a ranked menu of up to 5 candidate questions:
+
+```
+  Available questions:
+  [1] (default) Walk me through what you actually own day-to-day — not
+       what's in your job description, but what you actually spend time on.
+       Why: Role Summary is mandatory (0.00 — target 0.70).
+
+  [2] Who are the people you work with most closely?
+       Why: Key People & Relationships is mandatory (0.00 — target 0.70).
+
+  [3] What systems or tools are you the primary owner of?
+       Why: Systems & Tools is mandatory (0.00 — target 0.70).
+
+  [4] What's something you know that isn't written down anywhere?
+       Why: Implicit & Undocumented Knowledge is mandatory (0.00 — target 0.65).
+
+  [5] What would keep you up at night after you've left?
+       Why: Risks & Single Points of Failure is mandatory (0.00 — target 0.65).
+
+  Pick [1-5] or Enter for default (or 'done' to finish):
+```
+
+Press Enter to accept the default, or type a number to choose a different question. There is no wrong choice — the tool will cover every mandatory category across turns regardless of order.
+
+#### Read the turn summary
+
+After each answer, the six agents extract in parallel and a summary appears:
+
+```
+----------------------------------------------------------------------
+  EXTRACTED THIS TURN
+    + 3 responsibilities added
+    + 2 people added
+    + 1 system added
+
+  Coverage:
+  * Role Summary                    0.68  [#############.........]  (need 70%)
+  * Responsibilities & Ownership    0.44  [########...............]  (need 75%)
+  * Key People & Relationships      0.35  [#######................]  (need 70%)
+  * Systems & Tools                 0.28  [#####..................]  (need 70%)
+  * Implicit & Undocumented Knowl.  0.00  [......................]  (need 65%)
+  * Risks & Single Points of Fail.  0.00  [......................]  (need 65%)
+    Hiring Profile for Successor    0.00  [......................]
+  Overall: 31%
+----------------------------------------------------------------------
+```
+
+Categories marked `*` are mandatory. The bars fill as the interview progresses.
+
+#### Finish and save
+
+When all mandatory categories reach their targets, the tool signals:
+
+```
+  ✓ Mandatory coverage complete — interview can finish.
+  Type 'done' at the next prompt to save, or continue for depth.
+```
+
+Type `done` to end. The tool saves two artifacts:
+
+```
+  Brief state saved : runs/brief_jordan_kim/brief_state.json
+  Obsidian vault    : runs/brief_jordan_kim/brief_vault/
+```
+
+**`brief_state.json`** — full session state, resumable later.  
+**`brief_vault/`** — the Role Brief as a Markdown document. Open in Obsidian or any text editor.
+
+#### Resuming an interrupted session
+
+Run the exact same command again:
+
+```bash
+python run_interview.py --engine brief --name "Jordan Kim" --role "Senior Data Engineer" --config exit_interview
+```
+
+The tool finds the saved state and prompts:
+
+```
+  Previous brief session found:
+    Turns completed : 5
+    Completeness    : 48%
+
+  Resume this session? [Y/n]:
+```
+
+Press Enter to pick up exactly where you left off.
 
 ---
 
-## The Seeded Scenario (Project Falcon)
+### Scenario 2: Creating a New Domain Config
 
-The `initial_state.json` file provides a realistic starting point:
+**Situation:** You want to use the tool for a consultant project retrospective. The standard exit interview config asks about responsibilities and systems, but you need categories for client relationships, deliverables, and lessons learned instead.
 
-- **13 nodes** already in the graph (6 confirmed, 7 provisional)
-- **9 edges** representing known relationships
-- **1 seeded ambiguity**: two people share the alias "Richard" — the orchestrator's first question always resolves this
-- **3 seeded open questions** targeting the three biggest known gaps (workflow approval path, pipeline ownership, escalation procedure)
-- **0 coverage** on all six categories — everything needs to be earned through the interview
+#### Start the meta-interview
 
-The scenario is a data analytics contractor (Alex Miller) departing a project with NorthStar Corp as the client.
+```bash
+python run_interview.py --engine brief --name "Priya Sharma" --role "Senior Consultant" --new-config
+```
+
+The tool enters an 8-question session where you describe the kind of interview you want to conduct:
+
+```
+======================================================================
+  DOMAIN CONFIG CREATION — META-INTERVIEW
+======================================================================
+
+  I'll ask you 8 questions about the type of interview you want
+  to conduct. Your answers will generate a custom domain config.
+```
+
+Answer in plain language:
+
+```
+What type of interview are you trying to conduct?
+
+  Your answer: A project retrospective with a departing consultant who
+  worked on a client engagement for 18 months. We want to capture the
+  relationship history, deliverables, and what the next account team
+  needs to know.
+```
+
+After 8 questions, the system generates a full config — coverage categories, question banks, and output templates — and shows you a preview:
+
+```
+  Generated config: Consultant Project Retrospective (consultant_retrospective)
+
+  Categories:
+  * Client Relationships (mandatory, target: 70%)
+  * Deliverables & Outputs (mandatory, target: 70%)
+  * Lessons Learned (mandatory, target: 65%)
+  * Commitments & Open Items (mandatory, target: 70%)
+    Team Dynamics (optional)
+
+  Response (or 'approve' to save):
+```
+
+Type `approve` to save the config, or describe changes and the tool regenerates. Once saved, reference it directly in future sessions:
+
+```bash
+python run_interview.py --engine brief --name "Priya Sharma" --role "Senior Consultant" --config consultant_retrospective
+```
 
 ---
 
-## What's Working
+## How a Turn Works
+
+1. **Question menu** — Up to 5 candidate questions ranked by priority (resolve ambiguities first, then pre-seeded questions, then mandatory coverage gaps, then general gaps). Each candidate shows a one-line rationale.
+
+2. **Pick or accept** — Press Enter for the default (question 1), type a number to choose a different one, or type `done` to finish early.
+
+3. **Type the answer** — Free text, no length limit. Longer, more detailed answers produce richer extractions. One-sentence answers give the agents little to work with.
+
+4. **Extraction and summary** — All six agents run in parallel on the answer. After a few seconds, a turn summary shows what was extracted and the current coverage state for each category.
+
+5. **Auto-save** — The session is written to disk after every turn. Interrupting the process loses no data.
+
+---
+
+## Command Reference
+
+```bash
+python run_interview.py --engine brief [flags]
+```
+
+| Flag | Description | Default |
+|---|---|---|
+| `--name` | Interviewee's full name | required |
+| `--role` | Interviewee's job title or role | required |
+| `--engine brief` | Use the brief engine (this doc) | — |
+| `--config` | Domain config slug (e.g. `exit_interview`) | interactive picker |
+| `--new-config` | Create a new config via meta-interview instead of picking | — |
+| `--max-turns` | Maximum turns before auto-close | `12` |
+| `--out` | Output directory | `runs/<name-slug>/` |
+| `--quiet` | Suppress per-turn extraction summaries | — |
+
+> For the graph engine (`--engine graph`), see [docs/graph_engine.md](docs/graph_engine.md).
+
+---
+
+## Output Reference
+
+Both output files are written to `runs/<name-slug>/` by default. Override with `--out <path>`.
+
+| File / Directory | Contents |
+|---|---|
+| `brief_state.json` | Full session state: all turns, all extracted items, coverage scores. Resumable. |
+| `brief_vault/` | The Role Brief as a Markdown document. Organized into sections: role summary, responsibilities, people, systems, implicit knowledge, risks, hiring profile. Open in Obsidian or any text editor. |
+
+---
+
+## Project Structure
+
+```
+app/
+  agents/
+    llm_client.py                    # Shared instructor-wrapped Anthropic client
+    brief_orchestrator.py            # Config-driven question selector
+    responsibility_extractor.py      # Extracts responsibilities
+    people_extractor.py              # Extracts people & relationships
+    systems_extractor.py             # Extracts systems & tools
+    implicit_knowledge_extractor.py  # Extracts undocumented knowledge
+    risk_extractor.py                # Extracts risks & single points of failure
+    clarification_detector.py        # Detects ambiguities, generates follow-up questions
+    stubs.py                         # Fast no-LLM stubs for CI tests
+    prompts/                         # Versioned system prompts (.md files, one per agent)
+
+  brief/
+    schema.py            # RoleBrief, Responsibility, BriefPerson, BriefSystem, BriefRisk, etc.
+    extraction_models.py # Pydantic I/O wrappers for each extraction agent
+    session.py           # BriefSessionState (runtime container)
+    updater.py           # merge_into_brief() — the only place that writes to RoleBrief sections
+
+  config/
+    domain_config.py     # DomainConfig schema: coverage categories, question banks, targets
+    context_briefing.py  # ContextBriefing (lightweight preload context)
+    config_store.py      # save / load / list domain configs
+    instances/
+      exit_interview.json  # Built-in exit interview config
+
+  core/
+    models.py            # Shared Pydantic models: Interviewee, InterviewTurn, Ambiguity, etc.
+
+  ingestion/
+    loaders.py           # load_context_briefing() and load_initial_state()
+    dummy_data/
+      context_briefing.json  # Brief engine preload context
+
+  interview/
+    brief_turn_loop.py   # run_brief_turn() and run_brief_interview() — main loop
+
+  meta/
+    meta_interview.py    # Entry point for --new-config flow
+    meta_loop.py         # The 8-question meta-interview loop
+    config_generator.py  # LLM: generate DomainConfig from meta-answers
+    config_reviewer.py   # LLM: critique and refine the generated config
+    config_validator.py  # LLM: validate config coherence before saving
+    meta_questions.json  # The 8 meta-questions
+
+  vault/
+    vault_compiler.py    # compile_brief_vault() — writes the Role Brief Markdown after the interview
+
+tests/
+  unit/        # Pure logic, no I/O
+  contracts/   # Agent output schema validation (mocked LLM)
+  integration/ # Full pipeline with stub agents (no API key needed)
+  golden/      # Live LLM evaluation — requires ANTHROPIC_API_KEY
+  fixtures/
+    golden_interviews/  # Scripted transcripts + expected assertions
+
+eval/
+  run_golden_eval.py    # Standalone eval script — runs scripted interviews and prints a report
+
+docs/
+  graph_engine.md       # Graph engine (v1.0) reference — how to run, output format, known issues
+  project_narrative.md  # Design history — why the project pivoted from graph to brief
+  dev_notes.md          # Raw dev observations: known issues, failure modes
+```
+
+---
+
+## Status
 
 | Component | Status | Notes |
 |---|---|---|
-| Pydantic data models | ✅ Complete | All agent I/O contracts enforced |
-| Static initial state loader | ✅ Complete | JSON → SharedInterviewState |
-| Graph updater | ✅ Complete | Confidence thresholds, provenance, supersede logic |
-| Rule-based orchestrator | ✅ Complete | 4-tier priority ladder, deterministic question IDs |
-| Async turn loop | ✅ Complete | 5 agents in parallel via asyncio.gather |
-| LLM specialist agents | ✅ Complete | instructor + Anthropic, structured Pydantic outputs |
-| Ambiguity resolution | ✅ Complete | Auto-resolves when interviewee names a candidate |
-| Graph mapper | ✅ Complete | Deterministic Python, skips ambiguous entities |
-| Golden eval framework | ✅ Complete | 2 scenarios, 11 live tests, eval report script |
-| Unit + integration tests | ✅ 159 passing | CI runs without API key |
+| Brief schema & updater | ✅ Complete | Dedup, merge, provenance tracking |
+| Config-driven orchestrator | ✅ Complete | Reads DomainConfig, 4-tier priority ladder |
+| Brief engine turn loop | ✅ Complete | 6 agents in parallel via asyncio.gather |
+| LLM extraction agents (×5) | ✅ Complete | Responsibility, people, systems, implicit knowledge, risk |
+| Clarification detector | ✅ Complete | Shared with graph engine |
+| Domain config system | ✅ Complete | save/load/list, built-in exit_interview config |
+| Interactive CLI | ✅ Complete | Question menu, session resume, per-turn summaries |
+| Meta-interview (config creation) | ⚠️ Beta | Config generation, validation, and persistence |
+| Vault compiler (brief) | ⚠️ Partial | Single-document Markdown output, not fully tested |
+| Unit + integration tests | ✅ ~159 passing | CI runs without API key |
+| Golden eval framework | ✅ Complete | 7 scripted scenarios, eval report script |
 
 ---
 
-## What Needs Work
+## Troubleshooting
 
-This is a research prototype. The following areas need team input before it could be considered production-ready.
+**"ANTHROPIC_API_KEY is not set"**  
+Create `.env` in the project root containing `ANTHROPIC_API_KEY=sk-ant-...your-key...`. The tool loads this file automatically on startup.
 
-### Phase 7 — Output Layer (not built)
+**"No config found for slug 'exit_interview'"**  
+The built-in configs live in `app/config/instances/`. Check that `exit_interview.json` exists there.
 
-The spec calls for a `vault_compiler.py` that runs *after* the interview ends and writes the knowledge graph to an Obsidian vault as interlinked Markdown files. Nothing is currently persisted to disk — the final `SharedInterviewState` only lives in memory. At minimum we need:
+**The tool extracted nothing from a turn**  
+Short or vague answers produce sparse extractions. One-sentence answers give the agents little to work with. Encourage detailed, narrative responses — prompts like "walk me through exactly how that works" tend to produce much richer output.
 
-- JSON export of the final graph and transcript after each session
-- A simple report (coverage scores, new nodes created, unresolved ambiguities)
-- The Obsidian compiler (post-processing only — must not run during the live turn loop)
+**The interview ended before all mandatory categories were covered**  
+The default `--max-turns` is 12. Use `--max-turns 20` for longer interviews, or resume the saved session by running the same command again.
 
-### Tuning — Thresholds and Prompts
-
-Several values are hardcoded that should be validated against real interview data:
-
-| Parameter | Current value | File | Question |
-|---|---|---|---|
-| `CONFIRMED_THRESHOLD` | 0.80 | `updater.py` | Is 80% the right bar? |
-| `INSUFFICIENT_THRESHOLD` | 0.50 | `updater.py` | Should weak nodes be kept longer? |
-| `STUB_DELAY_SECONDS` | 0.02s | `stubs.py` | Calibrate against real LLM latency |
-| LLM model | `claude-haiku-4-5` | `llm_client.py` | Haiku vs Sonnet tradeoff on extraction quality |
-| Max turns default | 12 | `turn_loop.py` | Too few? Too many? |
-| Coverage increment size | 0.05–0.20 | `prompts/coverage_updater.md` | LLM decides — validate against ground truth |
-
-The five system prompts in `app/agents/prompts/` are the primary levers for extraction quality. The golden eval framework (`eval/run_golden_eval.py`) is the right tool for measuring the effect of prompt changes — run it before and after any prompt edit.
-
-### Live Turn-Based Interaction (not built)
-
-The `run_interview()` function accepts any callable as `answer_provider`. The scripted provider used in tests just returns pre-written strings. A real session needs:
-
-- A FastAPI WebSocket endpoint that drives `run_turn()` and streams the question to a human
-- A simple CLI REPL for local testing (`input()` → `answer_provider`)
-- Session persistence so an interview can be paused and resumed
-
-### The Clarification Loop (partially working)
-
-The clarification detector correctly identifies when answers are vague and generates follow-up questions. These are appended to `state.open_questions`. However:
-
-- The orchestrator treats clarification questions identically to seeded questions — they compete on priority rather than being asked immediately
-- There is no mechanism to interrupt the current question queue and surface a clarification right away
-- Resolved ambiguities are detected heuristically (label substring match) — this will fail on nicknames and informal references
-
-### Longer and More Varied Scenarios
-
-The current golden fixtures cover 4-turn interviews. Real exit interviews run 30–60 minutes. We need:
-
-- Longer scripted transcripts (10+ turns) to stress-test the orchestrator's question diversity
-- Scenarios that introduce contradictions (interviewee corrects themselves between turns)
-- Scenarios with multiple interviewees where graphs need to be merged
-- Edge cases: interviewee mentions an entity already in the graph under a different name (fuzzy matching)
-
----
-
-## Architecture Constraints (Do Not Break These)
-
-These were defined upfront and the entire test suite enforces them:
-
-1. **Agents never see the full state** — each agent receives only the slice of data it needs (`turn + existing_aliases`, not `SharedInterviewState`)
-2. **Five agents always run concurrently** — `asyncio.gather` in `turn_loop.py`; never sequential
-3. **Only `updater.py` writes to the graph** — agents propose, the updater commits
-4. **`instructor` enforces structured output** — no prompt-only JSON, Pydantic validates every response
-5. **No document parsing during the live loop** — `initial_state.json` is pre-built; the vault compiler runs after
-6. **Obsidian output is post-processing only** — no Markdown I/O during a live session
-
----
-
-## Running a Quick End-to-End Check
-
-```bash
-# No API key needed — uses fast stubs
-python -c "
-import asyncio
-from app.core.models import Interviewee
-from app.ingestion.loaders import load_initial_state
-from app.interview.turn_loop import run_interview
-from app.agents.stubs import (
-    extract_entities, extract_relationships, extract_attributes,
-    detect_clarifications, update_coverage, map_to_graph_updates,
-)
-import app.interview.turn_loop as tl
-
-# Patch to stubs
-tl.extract_entities = extract_entities
-tl.extract_relationships = extract_relationships
-tl.extract_attributes = extract_attributes
-tl.detect_clarifications = detect_clarifications
-tl.update_coverage = update_coverage
-tl.map_to_graph_updates = map_to_graph_updates
-
-interviewee = Interviewee(name='Alex Miller', role='Contractor', project_ids=['project_falcon'])
-state = load_initial_state(interviewee)
-
-answers = iter(['Richard Jones, client side.', 'Jordan approves, then Richard Jones signs off.', 'Sarah Chen owns the pipeline.', 'Risk: no runbook exists.'])
-results = asyncio.run(run_interview(state, lambda _: next(answers), max_turns=4))
-
-print(f'Turns completed: {len(results)}')
-print(f'Nodes in graph: {len(state.graph.nodes)}')
-print(f'Coverage: {state.coverage}')
-print(f'Richard ambiguity resolved: {state.ambiguities[0].resolved}')
-"
-```
-
----
-
-## Key Files to Read First
-
-If you're new to the codebase, read these in order:
-
-1. [`app/core/models.py`](app/core/models.py) — every data structure the system uses
-2. [`app/graph/schema.py`](app/graph/schema.py) — the graph node/edge contracts
-3. [`app/ingestion/dummy_data/initial_state.json`](app/ingestion/dummy_data/initial_state.json) — the concrete scenario we're working with
-4. [`app/interview/turn_loop.py`](app/interview/turn_loop.py) — the main loop; ~200 lines
-5. [`app/agents/orchestrator.py`](app/agents/orchestrator.py) — how questions are selected
-6. [`app/graph/updater.py`](app/graph/updater.py) — how the graph is mutated safely
-
-The test files mirror this structure and are the fastest way to understand what each component does and does not guarantee.
+**Unicode or box-drawing characters appear garbled on Windows**  
+The CLI sets UTF-8 output mode automatically. If you still see garbled characters, ensure your terminal uses UTF-8 (Windows Terminal: Settings → Defaults → Appearance → Text → UTF-8).

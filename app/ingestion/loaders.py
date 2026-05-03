@@ -1,8 +1,11 @@
 """
-Ingestion loader for Phase 2.
+Ingestion loaders.
 
-Reads the pre-built initial_state.json and constructs a SharedInterviewState.
-No document parsing happens here — the JSON already conforms to the graph schema.
+Two independent loaders coexist here:
+  load_initial_state()    — graph engine (v1): reads initial_state.json into
+                            SharedInterviewState. Unchanged from Phase 2.
+  load_context_briefing() — brief engine (v2): reads context_briefing.json
+                            into ContextBriefing. Lightweight preload context.
 """
 from __future__ import annotations
 
@@ -11,6 +14,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
+from app.config.context_briefing import ContextBriefing
 from app.core.models import (
     Ambiguity,
     Interviewee,
@@ -20,6 +24,7 @@ from app.core.models import (
 from app.graph.schema import KnowledgeGraph
 
 _DEFAULT_PATH = Path(__file__).parent / "dummy_data" / "initial_state.json"
+_DEFAULT_CONTEXT_PATH = Path(__file__).parent / "dummy_data" / "context_briefing.json"
 
 
 def load_initial_state(
@@ -67,6 +72,25 @@ def load_initial_state(
         open_questions=open_questions,
         ambiguities=ambiguities,
     )
+
+
+def load_context_briefing(path: Path = _DEFAULT_CONTEXT_PATH) -> ContextBriefing:
+    """
+    Load a ContextBriefing from a JSON file for the brief engine.
+
+    Args:
+        path: Path to context_briefing.json. Defaults to the bundled dummy data.
+
+    Raises:
+        FileNotFoundError: If the JSON file does not exist.
+        ValueError: If the JSON fails Pydantic schema validation.
+    """
+    if not path.exists():
+        raise FileNotFoundError(f"Context briefing file not found: {path}")
+    try:
+        return ContextBriefing.model_validate(json.loads(path.read_text(encoding="utf-8")))
+    except (ValidationError, ValueError) as exc:
+        raise ValueError(f"Context briefing failed schema validation: {exc}") from exc
 
 
 def validate_graph_integrity(state: SharedInterviewState) -> list[str]:

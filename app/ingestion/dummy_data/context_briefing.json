@@ -1,0 +1,69 @@
+{
+  "interviewee": {
+    "name": "Alex Rivera",
+    "role_title": "Senior Data Engineer",
+    "department": "Analytics & Data Platform",
+    "manager_name": "Priya Nair",
+    "last_day": "2026-05-30",
+    "years_at_org": 4.5
+  },
+  "known_team_members": [
+    {
+      "canonical_name": "Priya Nair",
+      "role": "Director of Data Engineering",
+      "team": "Analytics & Data Platform",
+      "is_internal": true
+    },
+    {
+      "canonical_name": "Jordan Kim",
+      "role": "Data Analyst",
+      "team": "Analytics & Data Platform",
+      "is_internal": true
+    },
+    {
+      "canonical_name": "Marcus Webb",
+      "role": "Backend Engineer",
+      "team": "Platform Engineering",
+      "is_internal": true
+    },
+    {
+      "canonical_name": "Diane Flores",
+      "role": "Account Manager",
+      "team": "Customer Success",
+      "is_internal": true
+    },
+    {
+      "canonical_name": "Tom Baxter",
+      "role": "Data Architect",
+      "team": "Snowflake Professional Services",
+      "is_internal": false
+    }
+  ],
+  "known_systems": [
+    {
+      "canonical_name": "Snowflake Data Warehouse",
+      "category": "analytics"
+    },
+    {
+      "canonical_name": "Apache Airflow",
+      "category": "orchestration"
+    },
+    {
+      "canonical_name": "dbt Cloud",
+      "category": "transformation"
+    },
+    {
+      "canonical_name": "Salesforce CRM",
+      "category": "crm"
+    },
+    {
+      "canonical_name": "GitHub Enterprise",
+      "category": "version_control"
+    }
+  ],
+  "known_responsibilities": [
+    "Maintain nightly ETL pipeline from Salesforce CRM to Snowflake Data Warehouse",
+    "Own the dbt models for revenue reporting",
+    "Data quality monitoring and alerting"
+  ]
+}
